@@ -3,9 +3,12 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK,HTTP_201_CREATED,HTTP_400_BAD_REQUEST,HTTP_500_INTERNAL_SERVER_ERROR
 from .models import Miembro
 from inscripciones.models import Inscripcion
-from .serializers import MiembroSerializer, HistorialDeportivoSerializer,HistorialMedicoSerializer
+from pagos.models import Pagos
+from .serializers import MiembroSerializer, HistorialDeportivoSerializer,HistorialMedicoSerializer,Credencial
 from pagos.serializers import PagosSerializer
 from inscripciones.serializers import InscripcionSerializer
+
+from cadi_gym.utils import supabase
 
 class RegistroMiembro(APIView):
     def post(self, request):
@@ -108,3 +111,69 @@ class RegistroMiembro(APIView):
         except Exception as e:
             print(f"Error: {e}")  # Para propósitos de depuración
             return Response({"error": "Ocurrió un error durante el registro."}, status=HTTP_500_INTERNAL_SERVER_ERROR)
+
+class DatosMiembro(APIView):
+    def get(self,request):
+        try:
+            id= request.GET.get('user_id')
+            datosMiembro = Miembro.objects.get(num_control=id)
+            inscripciones= Inscripcion.objects.filter(miembro=datosMiembro.num_control)
+            if datosMiembro.foto:
+                foto_url = supabase.storage.from_('cadi_gym').get_public_url(datosMiembro.foto)  # Esto mostrará la URL de la imagen
+            else:
+                foto_url=None
+            
+            datos = {
+                "num_control": datosMiembro.num_control,
+                "nombre": datosMiembro.nombre,
+                "apellidos": datosMiembro.apellidos,
+                "foto":foto_url,
+                "inscripciones": []
+            }
+            for inscripcion in inscripciones:  
+                pago=Pagos.objects.filter(inscripcion=inscripcion.id,estado='pendiente').latest('proximo_pago')
+                datos["inscripciones"].append({
+                        "clase": inscripcion.clase,
+                        "idInscripcion": inscripcion.id,
+                        "vigencia":pago.proximo_pago
+                    }) 
+            return Response(data=datos, status=HTTP_200_OK) 
+        except Miembro.DoesNotExist:
+            print("no existe")
+        except Exception as e:
+            print(e)
+            return Response({"error": "Ocurrió un error durante el registro."}, status=HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class  FotoCredencial(APIView):
+    def post(self, request): 
+        user_id = request.data.get('user_id')
+        
+        print(user_id)
+        foto = request.FILES.get('foto')  
+        if not foto:
+            return Response({"error": "No se ha proporcionado ninguna imagen."}, status= HTTP_400_BAD_REQUEST)
+        miembro = Miembro.objects.get(num_control=user_id)
+        # Define la ruta donde se almacenará la imagen en Supabase
+        path_on_supastorage = f"images/{miembro.num_control}.png"  # Puedes personalizar la ruta si lo deseas
+
+        try:
+            # Sube la imagen al bucket usando el contenido del archivo
+            res = supabase.storage.from_('cadi_gym').upload(
+                path_on_supastorage,
+                file=foto.read(),  # Lee el contenido del archivo
+                file_options={"content-type": foto.content_type}  # Establece el tipo de contenido
+            )
+
+             
+            # Actualiza el modelo miembro para guardar la ruta de la imagen
+              # Asegúrate de que el CURP existe en la base de datos
+            miembro.foto = path_on_supastorage  # Guarda la ruta de la imagen en el campo 'foto'
+            miembro.save()  # Guarda los cambios en la base de datos
+
+            return Response({"message": f"Imagen '{foto.name}' subida exitosamente!", "path": path_on_supastorage}, status= HTTP_201_CREATED)
+
+        except Exception as e:
+            # Manejo de errores si la subida falla
+            return Response({"error": str(e)}, status= HTTP_400_BAD_REQUEST)
+
+

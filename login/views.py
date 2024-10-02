@@ -27,7 +27,7 @@ class LogIn(TokenObtainPairView):
                 # Decodificar el token para acceder a su payload
                 decoded_token = AccessToken(token)
                 # Agregar el campo isAdmin al payload
-                decoded_token['user_id']=user.username
+                decoded_token['user_id']=user.num_control
                 decoded_token['isAdmin'] = user.is_superuser
                 decoded_token['rol']=user.roles
                 decoded_token['tema']=user.tema

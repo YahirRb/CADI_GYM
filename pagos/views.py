@@ -1,6 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.status import HTTP_200_OK,HTTP_201_CREATED,HTTP_400_BAD_REQUEST,HTTP_500_INTERNAL_SERVER_ERROR
+from rest_framework.status import HTTP_200_OK,HTTP_201_CREATED,HTTP_400_BAD_REQUEST,HTTP_500_INTERNAL_SERVER_ERROR,HTTP_404_NOT_FOUND
 from .models import Pagos
 from miembros.models import Miembro
 from inscripciones.models import Inscripcion 
@@ -11,9 +11,10 @@ from datetime import date
 class PagosPendientesUsuario(APIView):
     def get(self,request):
         try:
-            usuario= Miembro.objects.get(correo=request.GET.get('user_id')) 
+            num_control=request.GET.get('user_id')
+            usuario= Miembro.objects.get(num_control=request.GET.get('user_id')) 
             fecha_actual = date.today()  
-            pagos = Pagos.objects.filter(miembro=usuario.num_control, estado='pendiente')
+            pagos = Pagos.objects.filter(miembro=num_control, estado='pendiente')
             pagos_validos = []
 
             for pago in pagos:
@@ -48,3 +49,46 @@ class PagosPendientesUsuario(APIView):
         except Exception as e:
             print(e)
             return Response({"error": "Ocurrió un error en la solicitud"}, status=500)
+
+class RegistrarPago(APIView):
+    def post(self,request):
+        try:
+            proximo_pago= request.data.get('proximo_pago')
+            fecha_pago= request.data.get('fecha_pago')
+            monto = request.data.get('monto')
+            id_pago = request.data.get('id_pago')
+            pago = Pagos.objects.get(id=id_pago)
+            pago.fecha_pago_realizado=fecha_pago
+            pago.estado='pagado'
+            miembro= pago.miembro
+            inscripcion=pago.inscripcion
+            datos_inscripcion= Inscripcion.objects.get(id= inscripcion.id)
+            
+            datos_inscripcion.acceso=True
+            
+            nuevo_pago={
+                'fecha_pago_realizado': None,  # No se ha realizado el pago
+                'estado': 'pendiente',
+                'inscripcion': inscripcion.id,
+                'miembro':  miembro.num_control,
+                'monto': pago.monto,  # Puede ser el mismo monto
+                'proximo_pago': proximo_pago  # Usar la misma fecha
+            }
+            
+            serializer= PagosSerializer(data=nuevo_pago)
+            
+            if serializer.is_valid():
+                pago.save()
+                datos_inscripcion.save()
+                serializer.save()
+            else:
+                return Response(data="Datos de pago incorrectos",status=HTTP_404_NOT_FOUND)
+            return Response(data="Pago registrado",status=HTTP_200_OK)
+        except Pagos.DoesNotExist:
+            return Response(data="Ocurrio un error",status=HTTP_404_NOT_FOUND)
+        except Inscripcion.DoesNotExist:
+            return Response(data="Ocurrio un error",status=HTTP_404_NOT_FOUND)
+        except Exception as e:
+            property(e)
+            return Response(data="Ocurrio un error",status=HTTP_400_BAD_REQUEST)
+        

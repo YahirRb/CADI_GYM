@@ -26,6 +26,7 @@ class Miembro(models.Model):
     padre_tutor = models.CharField(max_length=100, blank=True, null=True)  # Permitir nulos
     telefono_tutor = models.CharField(max_length=15, blank=True, null=True)
     contacto_emergencia = models.JSONField()  # Guardar como JSON
+    foto = models.ImageField(upload_to='images/', null=True, blank=True)
     
     def __str__(self):
         return f"{self.nombre} {self.apellidos} - {self.num_control}"
@@ -46,7 +47,8 @@ class Miembro(models.Model):
                     'first_name':self.nombre,
                     'last_name':self.apellidos,
                     'password':  make_password(password_temporal),
-                    'roles':rol.name
+                    'roles':rol.name,
+                    'num_control':self.num_control
                 }
             )
             user.groups.add(rol)

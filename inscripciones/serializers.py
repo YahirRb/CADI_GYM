@@ -38,3 +38,8 @@ class DatosInscripcionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Inscripcion
         fields = ['acceso','gimnasio_mixto', 'gimnasia_artistica']
+        
+class DatosCredencial(serializers.ModelSerializer):
+    class Meta:
+        model = Inscripcion
+        fields = ['id','clase']
