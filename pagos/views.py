@@ -6,13 +6,14 @@ from miembros.models import Miembro
 from inscripciones.models import Inscripcion 
 from .serializers import PagosSerializer,PagosPendientes
 from inscripciones.serializers import InscripcionSerializer
-from datetime import date
+from datetime import date,datetime, timedelta
+from dateutil.relativedelta import relativedelta
 
 class PagosPendientesUsuario(APIView):
     def get(self,request):
         try:
             num_control=request.GET.get('user_id')
-            usuario= Miembro.objects.get(num_control=request.GET.get('user_id')) 
+            usuario= Miembro.objects.get(num_control=request.GET.get('user_id'))
             fecha_actual = date.today()  
             pagos = Pagos.objects.filter(miembro=num_control, estado='pendiente')
             pagos_validos = []
@@ -53,7 +54,6 @@ class PagosPendientesUsuario(APIView):
 class RegistrarPago(APIView):
     def post(self,request):
         try:
-            proximo_pago= request.data.get('proximo_pago')
             fecha_pago= request.data.get('fecha_pago')
             monto = request.data.get('monto')
             id_pago = request.data.get('id_pago')
@@ -61,18 +61,30 @@ class RegistrarPago(APIView):
             pago.fecha_pago_realizado=fecha_pago
             pago.estado='pagado'
             miembro= pago.miembro
+            fecha=pago.proximo_pago
+            
             inscripcion=pago.inscripcion
             datos_inscripcion= Inscripcion.objects.get(id= inscripcion.id)
-            
+            modalidad = datos_inscripcion.modalidad
             datos_inscripcion.acceso=True
-            
+            if modalidad == 'Semana':
+                proximo_pago= fecha + relativedelta(weeks=1)
+            elif modalidad =='Quincena':
+                proximo_pago= fecha + timedelta(days=15)
+            elif modalidad == 'Mes' or modalidad == 'Mes (de 5 a 6 años)' or modalidad == 'Mes (7 años en adelante)':
+                proximo_pago= fecha + relativedelta(months=1)
+            elif modalidad == 'Trimestre':
+                proximo_pago= fecha + relativedelta(months=3)
+            elif modalidad == '6 meses':
+                proximo_pago= fecha + relativedelta(months=6) 
+            print(proximo_pago)
             nuevo_pago={
                 'fecha_pago_realizado': None,  # No se ha realizado el pago
                 'estado': 'pendiente',
                 'inscripcion': inscripcion.id,
                 'miembro':  miembro.num_control,
-                'monto': pago.monto,  # Puede ser el mismo monto
-                'proximo_pago': proximo_pago  # Usar la misma fecha
+                'monto': monto,  # Puede ser el mismo monto
+                'proximo_pago': proximo_pago # Usar la misma fecha
             }
             
             serializer= PagosSerializer(data=nuevo_pago)
@@ -84,11 +96,13 @@ class RegistrarPago(APIView):
             else:
                 return Response(data="Datos de pago incorrectos",status=HTTP_404_NOT_FOUND)
             return Response(data="Pago registrado",status=HTTP_200_OK)
-        except Pagos.DoesNotExist:
+        except Pagos.DoesNotExist as e:
+            print(e)
             return Response(data="Ocurrio un error",status=HTTP_404_NOT_FOUND)
-        except Inscripcion.DoesNotExist:
+        except Inscripcion.DoesNotExist as e:
+            print(e)
             return Response(data="Ocurrio un error",status=HTTP_404_NOT_FOUND)
         except Exception as e:
-            property(e)
+            print(e)
             return Response(data="Ocurrio un error",status=HTTP_400_BAD_REQUEST)
         

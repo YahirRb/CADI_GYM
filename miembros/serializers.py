@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Miembro, HistorialMedico, HistorialDeportivo
+from .models import Miembro, HistorialMedico, HistorialDeportivo,Visitantes
 from inscripciones.serializers import DatosCredencial
 
 class MiembroSerializer(serializers.ModelSerializer):
@@ -22,4 +22,9 @@ class Credencial(serializers.ModelSerializer):
     class Meta:
         model = Miembro
         fields = ['num_control','nombre','apellidos','inscripcion']
+        
+class VisitanteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Visitantes
+        fields = '__all__'
         

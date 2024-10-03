@@ -1,14 +1,23 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK,HTTP_201_CREATED,HTTP_400_BAD_REQUEST,HTTP_500_INTERNAL_SERVER_ERROR
-from .models import Miembro
+from .models import Miembro,Visitantes
 from inscripciones.models import Inscripcion
 from pagos.models import Pagos
-from .serializers import MiembroSerializer, HistorialDeportivoSerializer,HistorialMedicoSerializer,Credencial
+from .serializers import MiembroSerializer, HistorialDeportivoSerializer,HistorialMedicoSerializer,Credencial,VisitanteSerializer
 from pagos.serializers import PagosSerializer
 from inscripciones.serializers import InscripcionSerializer
+from datetime import datetime, timedelta
+from django.utils import timezone 
+from dateutil.relativedelta import relativedelta
+from django.contrib.auth import get_user_model
+import jwt
+from cadi_gym.settings import SECRET_KEY
+from cadi_gym.utils import enviar_correo
 
 from cadi_gym.utils import supabase
+
+User = get_user_model()
 
 class RegistroMiembro(APIView):
     def post(self, request):
@@ -18,8 +27,12 @@ class RegistroMiembro(APIView):
             historialMedico = request.data.get('historial_medico')
             historialDeportivo = request.data.get('historial_deportivo') 
             datosInscripcion = request.data.get('datos_inscripcion')
-
+            fecha_str=datosMiembro['fecha']
+            fecha = datetime.strptime(fecha_str, '%Y-%m-%d')
             # Serializar el miembro
+            curp= datosMiembro['curp']
+            password= curp[:10]
+            print(password)
             serializerMiembro = MiembroSerializer(data=datosMiembro)
 
             if serializerMiembro.is_valid():
@@ -42,12 +55,25 @@ class RegistroMiembro(APIView):
                     serializerDeportivo.save()
 
                     # Procesar cada inscripción en la lista
-                    for inscripcion_data in datosInscripcion:
+                    for inscripcion_data in datosInscripcion: 
                         # Asignar ID de miembro a cada inscripción
                         inscripcion_data['miembro'] = num_control
-                        inscripcion_data['fecha'] = datosMiembro['fecha']
+                        modalidad=inscripcion_data['modalidad']
+                        print('segundo')
+                        print(modalidad)
                         
-
+                        inscripcion_data['fecha'] = datosMiembro['fecha']
+                        if modalidad == 'Semana':
+                            proximo_pago= fecha + relativedelta(weeks=1)
+                        elif modalidad =='Quincena':
+                            proximo_pago= fecha + timedelta(days=15)
+                        elif modalidad == 'Mes' or modalidad == 'Mes (de 5 a 6 años)' or modalidad == 'Mes (7 años en adelante)':
+                            proximo_pago= fecha + relativedelta(months=1)
+                        elif modalidad == 'Trimestre':
+                            proximo_pago= fecha + relativedelta(months=3)
+                        elif modalidad == '6 meses':
+                            proximo_pago= fecha + relativedelta(months=6) 
+                        inscripcion_data['proximo_pago']=proximo_pago.date()
                         # Serializar inscripción
                         serializerInscripcion = InscripcionSerializer(data=inscripcion_data)
 
@@ -91,11 +117,17 @@ class RegistroMiembro(APIView):
                             if serializerPagoPendiente.is_valid():
                                 # Guardar el pago pendiente
                                 serializerPagoPendiente.save()
+                                
                             else:
                                 return Response({"errors": serializerPagoPendiente.errors}, status=HTTP_400_BAD_REQUEST)
                         else:
                             return Response({"errors": serializerInscripcion.errors}, status=HTTP_400_BAD_REQUEST)
-
+                    """
+                    enviar_correo(
+                        destinatario=datosMiembro['correo'],
+                        asunto='Recordatorio de pago',
+                        mensaje="mensaje")
+                    """
                     return Response({"message": "Miembro registrado con éxito junto con historiales, inscripciones y pagos."}, status=HTTP_201_CREATED)
                 else:
                     # Recopilar errores de validación
@@ -176,4 +208,83 @@ class  FotoCredencial(APIView):
             # Manejo de errores si la subida falla
             return Response({"error": str(e)}, status= HTTP_400_BAD_REQUEST)
 
+class RegistroVisitante(APIView):
+    def post(self,request):
+        try:
+            fecha_actual = datetime.now().date() 
+            nombre=request.data.get('nombre')
+            apellidos=request.data.get('apellidos')
+            correo=request.data.get('correo')
+            celular=request.data.get('celular')
+            datos_visitante={
+                'nombre':nombre,
+                'apellidos':apellidos,
+                'correo':correo,
+                'celular':celular
+            }
+            datos_pago={
+                
+            }
+            nuevo_visitante=VisitanteSerializer(data=datos_visitante)
+            if nuevo_visitante.is_valid():
+                nuevo_visitante.save()
+                return Response(data="Visitante registrado",status=HTTP_201_CREATED)
+            else:
+                return Response(data="Error al registrar visitante",status=HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(data="Ocurrio un error",status=HTTP_400_BAD_REQUEST)
+            
+class ListarVisitantes(APIView):
+    def get(self,request):
+        try:
+            
+            visitantes=Visitantes.objects.all()
+            serializer=VisitanteSerializer(visitantes,many=True)
+            
+            return Response(data=serializer.data,status=HTTP_200_OK)
+        except Exception as e:
+            return Response(data="Ocurrio un error",status=HTTP_400_BAD_REQUEST)
+        
+class SuspenderMiembro(APIView):
+    def put(self,request):
+        try:
+            id_miembro=request.data.get('num_control')
+            inscripciones=Inscripcion.objects.filter(miembro=id_miembro)
+            usuario=User.objects.get(num_control=id_miembro)
+            pagos=Pagos.objects.filter(miembro=id_miembro,estado='pendiente' )
+            usuario.is_active=False
+            for inscripcion in inscripciones:
+                
+                inscripcion.acceso=False
+                inscripcion.save() 
+            for pago in pagos:
+                pago.estado='cancelado'
+                pago.save()
+            
+            usuario.save() 
+            return Response(data="Baja exitosa",status=HTTP_200_OK)
+            
+        except Exception as e:
+            print(e)
+            return Response(data="Ocurrio un error",status=HTTP_400_BAD_REQUEST)
+        
+class RegistroTemporal(APIView):
+    def get(self,request):
+        try:
+            payload = {
+                'num_control': 13,  # Puedes incluir los datos que necesites
+                'exp': timezone.now() + timedelta(minutes=5)  # Expiración de 5 minutos
+            }
 
+            # Crear el token
+            token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+
+            print("Token JWT:", token)
+        except Exception as e:
+            print(e)
+        return Response("")
+        
+        
+        
+        
+        

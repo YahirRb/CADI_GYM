@@ -137,7 +137,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Mexico_City'
 
 USE_I18N = True
 
@@ -158,5 +158,11 @@ if not DEBUG:
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587  # Puerto de Gmail para SMTP
+EMAIL_USE_TLS = True  # Habilitar TLS para seguridad
+EMAIL_HOST_USER = 'confeticonfiesta1@gmail.com'  # Tu dirección de correo electrónico
+EMAIL_HOST_PASSWORD = 'vgeb upoi mrjv pajv'  # La contraseña de tu correo electrónico
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
