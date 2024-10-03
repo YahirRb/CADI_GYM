@@ -1,30 +1,69 @@
 from django.db.models.signals import post_migrate
 from django.dispatch import receiver
-from .models import GimnasioMixto, GimnasiaArtistica
+from miembros.models import Miembro, HistorialMedico, HistorialDeportivo
 
 @receiver(post_migrate)
-def create_default_modalities(sender, **kwargs):
+def create_default_members(sender, **kwargs):
     # Asegúrate de que solo se ejecute para tu aplicación específica
-    if sender.name == 'inscripciones':
-        # Datos predeterminados para GimnasioMixto
-        default_gimnasio_mixto = [
-            {"modalidad": "Visita", "costo": 70.00},
-            {"modalidad": "Semana", "costo": 200.00},
-            {"modalidad": "Quincena", "costo": 300.00},
-            {"modalidad": "Mes", "costo": 550.00},
-            {"modalidad": "Trimestre", "costo": 1250.00},
-            {"modalidad": "6 Meses", "costo": 2500.00},
+    if sender.name == 'tu_nombre_de_aplicacion':  # Cambia esto por el nombre de tu aplicación
+        # Datos predeterminados para Miembro
+        default_members = [
+            {
+                "fecha": "2024-01-01",
+                "nombre": "Juan",
+                "apellidos": "Pérez",
+                "direccion": "Calle Falsa 123",
+                "fecha_nacimiento": "1990-01-01",
+                "edad": 34,
+                "tipo_sangre": "O+",
+                "facebook": "https://facebook.com/juanperez",
+                "correo": "juan.perez@example.com",
+                "curp": "PEPJ901001HDFRNS00",
+                "nss": "12345678901",
+                "dependencia": "Ninguna",
+                "telefono_fijo": "5551234567",
+                "celular": "5559876543",
+                "hijos": 2,
+                "edades": "[5, 7]",
+                "padre_tutor": "Pedro Pérez",
+                "telefono_tutor": "5557654321",
+                "contacto_emergencia": {"nombre": "Luis", "telefono": "5551112233"},
+                "foto": None  # Agrega la ruta a la foto si es necesario
+            },
+            # Agrega más miembros según sea necesario
         ]
-        
-        for value in default_gimnasio_mixto:
-            GimnasioMixto.objects.get_or_create(modalidad=value["modalidad"], costo=value["costo"])
 
-        # Datos predeterminados para GimnasiaArtistica
-        default_gimnasia_artistica = [
-            {"modalidad": "Visita", "costo": 80.00},
-            {"modalidad": "Mes (de 5 a 6 años)", "costo": 730.00},
-            {"modalidad": "Mes (7 años en adelante)", "costo": 810.00}
-        ]
-        
-        for value in default_gimnasia_artistica:
-            GimnasiaArtistica.objects.get_or_create(modalidad=value["modalidad"], costo=value["costo"])
+        for member_data in default_members:
+            miembro, created = Miembro.objects.get_or_create(
+                correo=member_data["correo"],
+                defaults=member_data
+            )
+            
+            # Crear HistorialMedico si el miembro fue creado
+            if created:
+                HistorialMedico.objects.get_or_create(
+                    miembro=miembro,
+                    defaults={
+                        "padecimientos": None,
+                        "medicamentos": None,
+                        "descripcion_accidente": None,
+                        "descripcion_operacion": None,
+                        "descripcion_hospitalizacion": None,
+                        "desmayos_ejercicio": None,
+                        "traumatismo_oseo": None,
+                        "golpe_cabeza": None,
+                        "alergias": None,
+                        "enfermedad_actual": None,
+                        "observaciones": None,
+                    }
+                )
+
+                # Crear HistorialDeportivo si el miembro fue creado
+                HistorialDeportivo.objects.get_or_create(
+                    miembro=miembro,
+                    defaults={
+                        "deporte_actual": None,
+                        "actividad_fisica_reciente": None,
+                        "lesion": None,
+                    }
+                )

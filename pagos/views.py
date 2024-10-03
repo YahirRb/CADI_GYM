@@ -18,32 +18,44 @@ class PagosPendientesUsuario(APIView):
             fecha_actual = date.today()  
             pagos = Pagos.objects.filter(miembro=num_control, estado='pendiente')
             pagos_validos = []
-
+            
             for pago in pagos:
                 inscripcion = pago.inscripcion
                 print(f"Fecha de inscripción: {inscripcion.fecha}")
                 print(pago.monto)
+                pago_info = {
+                    "id": pago.id,
+                    "estado": pago.estado,
+                    "fecha_pago_realizado": pago.fecha_pago_realizado,
+                    "proximo_pago": pago.proximo_pago,
+                    "monto": str(pago.monto),  # Asegúrate de que el monto sea un string
+                    "miembro": pago.miembro.num_control,  # Asumiendo que 'miembro' es una relación
+                    "inscripcion": inscripcion.id,
+                    "clase": inscripcion.clase,  # Asegúrate de que 'clase' está disponible en el objeto 'inscripcion'
+                    "modalidad": inscripcion.modalidad,  # Asegúrate de que 'modalidad' está disponible en el objeto 'inscripcion'
+                }
                 # Verifica la modalidad y la fecha del próximo pago
                 if inscripcion.modalidad == 'Mes' and pago.proximo_pago >= fecha_actual:
-                    pago.monto=500
-                    pagos_validos.append(pago)
+                    pago_info["monto"] = "500.00"
+                    
                 elif inscripcion.modalidad == 'Mes (de 5 a 6 años)' and pago.proximo_pago >= fecha_actual:
                     print("inscripcion niño")
-                    pago.monto=680
-                    pagos_validos.append(pago)
+                    pago_info["monto"] = "680.00"
+                    
                 elif inscripcion.modalidad == 'Mes (7 años en adelante)' and pago.proximo_pago >= fecha_actual:
                     print("inscripcion adulto")
-                    pago.monto=760
-                    pagos_validos.append(pago)
+                    pago_info["monto"] = "760.00"
+                    
                 elif pago.proximo_pago < fecha_actual:
-                    pago.monto=pago.monto+50
-                    pagos_validos.append(pago)
+                    pago_info["monto"] = str(float(pago.monto) + 50)  # Actualiza el monto
                 else:
-                    pagos_validos.append(pago)
+                    pago_info["monto"] = str(pago.monto)  # Monto original si no se aplica ninguna condición
 
-            # Serializa solo los pagos válidos
-            serializer = PagosSerializer(pagos_validos, many=True)
-            return Response(data=serializer.data)
+                # Agrega el diccionario a la lista de pagos válidos
+                pagos_validos.append(pago_info)
+
+            # Serializa solo los pagos válidos 
+            return Response(data=pagos_validos)
 
         except Miembro.DoesNotExist as e:
             print(e)
