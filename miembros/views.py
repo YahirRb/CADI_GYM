@@ -1,9 +1,10 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.status import HTTP_200_OK,HTTP_201_CREATED,HTTP_400_BAD_REQUEST,HTTP_500_INTERNAL_SERVER_ERROR
+from rest_framework.status import HTTP_200_OK,HTTP_201_CREATED,HTTP_400_BAD_REQUEST,HTTP_500_INTERNAL_SERVER_ERROR, HTTP_401_UNAUTHORIZED,HTTP_404_NOT_FOUND
 from .models import Miembro,Visitantes
 from inscripciones.models import Inscripcion
 from pagos.models import Pagos
+from login.models import TokenUtilizado
 from .serializers import MiembroSerializer, HistorialDeportivoSerializer,HistorialMedicoSerializer,Credencial,VisitanteSerializer
 from pagos.serializers import PagosSerializer
 from inscripciones.serializers import InscripcionSerializer
@@ -12,6 +13,7 @@ from django.utils import timezone
 from dateutil.relativedelta import relativedelta
 from django.contrib.auth import get_user_model
 import jwt
+from jwt import ExpiredSignatureError, InvalidTokenError
 from cadi_gym.settings import SECRET_KEY
 from cadi_gym.utils import enviar_correo
 
@@ -171,7 +173,7 @@ class DatosMiembro(APIView):
                     }) 
             return Response(data=datos, status=HTTP_200_OK) 
         except Miembro.DoesNotExist:
-            print("no existe")
+            return Response(data="El usuario no existe",status=HTTP_404_NOT_FOUND)
         except Exception as e:
             print(e)
             return Response({"error": "Ocurrió un error durante el registro."}, status=HTTP_500_INTERNAL_SERVER_ERROR)
@@ -268,23 +270,191 @@ class SuspenderMiembro(APIView):
             print(e)
             return Response(data="Ocurrio un error",status=HTTP_400_BAD_REQUEST)
         
-class RegistroTemporal(APIView):
+class EnlaceTemporal(APIView):
     def get(self,request):
         try:
-            payload = {
-                'num_control': 13,  # Puedes incluir los datos que necesites
+            correo=request.GET.get('correo')
+            payload = {  
                 'exp': timezone.now() + timedelta(minutes=5)  # Expiración de 5 minutos
             }
 
-            # Crear el token
             token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+            enviar_correo(
+                destinatario=correo,
+                asunto='Enlace de registro',
+                mensaje=f"https://cadi-minatitlan.site/{token}")
+            print(token)
+            tokenn='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Mjc5NzE3MDl9.XmPS2eNL3Gz0-jMBQA3tGip9P1GEEcw3E61sBRWvZR4'
+            
+            return Response(data="Correo enviado",status=HTTP_200_OK)
+        except ExpiredSignatureError:
+                # El token ha expirado
+                return Response(data="El token ha expirado", status=HTTP_401_UNAUTHORIZED)
 
-            print("Token JWT:", token)
+        except InvalidTokenError:
+                # El token es inválido
+                return Response(data="El token es inválido", status=HTTP_401_UNAUTHORIZED)
         except Exception as e:
             print(e)
-        return Response("")
+            return Response(data="Ocurrio un error",status=HTTP_400_BAD_REQUEST)
         
-        
+
+class RegistroTemporal(APIView):
+    def post(self, request):
+        try:
+            token=request.data.get('token')
+            
+            decoded_token = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+            if TokenUtilizado.objects.filter(token=token).exists():
+                return Response(data="El token ya ha sido utilizado", status=HTTP_401_UNAUTHORIZED)
+
+            # Si es válido, almacénalo como utilizado
+            TokenUtilizado.objects.create(token=token)
+            # Obtener datos del request
+            datosMiembro = request.data.get('datos_miembro')
+            historialMedico = request.data.get('historial_medico')
+            historialDeportivo = request.data.get('historial_deportivo') 
+            datosInscripcion = request.data.get('datos_inscripcion')
+            fecha_str=datosMiembro['fecha']
+            fecha = datetime.strptime(fecha_str, '%Y-%m-%d')
+            # Serializar el miembro
+            curp= datosMiembro['curp']
+            password= curp[:10]
+            print(password)
+            serializerMiembro = MiembroSerializer(data=datosMiembro)
+
+            if serializerMiembro.is_valid():
+                # Guardar el miembro
+                miembro = serializerMiembro.save()
+                num_control = miembro.num_control  # Obtener el identificador del miembro
+
+                # Asignar ID de miembro a historiales
+                historialMedico['miembro'] = num_control
+                historialDeportivo['miembro'] = num_control
+
+                # Serializar historiales
+                serializerMedico = HistorialMedicoSerializer(data=historialMedico)
+                serializerDeportivo = HistorialDeportivoSerializer(data=historialDeportivo)
+
+                # Validar historiales
+                if all([serializerMedico.is_valid(), serializerDeportivo.is_valid()]):
+                    # Guardar historiales
+                    serializerMedico.save()
+                    serializerDeportivo.save()
+
+                    # Procesar cada inscripción en la lista
+                    for inscripcion_data in datosInscripcion: 
+                        # Asignar ID de miembro a cada inscripción
+                        inscripcion_data['miembro'] = num_control
+                        modalidad=inscripcion_data['modalidad']
+                        print('segundo')
+                        print(modalidad)
+                        
+                        inscripcion_data['fecha'] = datosMiembro['fecha']
+                        if modalidad == 'Semana':
+                            proximo_pago= fecha + relativedelta(weeks=1)
+                        elif modalidad =='Quincena':
+                            proximo_pago= fecha + timedelta(days=15)
+                        elif modalidad == 'Mes' or modalidad == 'Mes (de 5 a 6 años)' or modalidad == 'Mes (7 años en adelante)':
+                            proximo_pago= fecha + relativedelta(months=1)
+                        elif modalidad == 'Trimestre':
+                            proximo_pago= fecha + relativedelta(months=3)
+                        elif modalidad == '6 meses':
+                            proximo_pago= fecha + relativedelta(months=6) 
+                        inscripcion_data['proximo_pago']=proximo_pago.date()
+                        # Serializar inscripción
+                        serializerInscripcion = InscripcionSerializer(data=inscripcion_data)
+
+                        if serializerInscripcion.is_valid():
+                            print("si entra")
+                            inscripcion = serializerInscripcion.save()  # Guardar inscripción
+
+                            # Preparar datos del pago realizado
+                            datosPagoRealizado = {
+                                'fecha_pago_realizado': datosMiembro['fecha'],
+                                'estado': 'pagado',
+                                'inscripcion': inscripcion.id,
+                                'miembro': num_control,
+                                'monto': inscripcion_data['monto'],  # Obtener el monto de la inscripción
+                                'proximo_pago': inscripcion_data['proximo_pago']  # Obtener la fecha del próximo pago
+                            }
+
+                            # Serializar el pago realizado
+                            serializerPagoRealizado = PagosSerializer(data=datosPagoRealizado)
+
+                            if serializerPagoRealizado.is_valid():
+                                print("si guarda el pago")
+                                # Guardar el pago realizado
+                                serializerPagoRealizado.save()
+                            else:
+                                return Response({"errors": serializerPagoRealizado.errors}, status=HTTP_400_BAD_REQUEST)
+
+                            # Preparar datos del pago pendiente
+                            datosPagoPendiente = {
+                                'fecha_pago_realizado': None,  # No se ha realizado el pago
+                                'estado': 'pendiente',
+                                'inscripcion': inscripcion.id,
+                                'miembro': num_control,
+                                'monto': inscripcion_data['costo'],  # Puede ser el mismo monto
+                                'proximo_pago': inscripcion_data['proximo_pago']  # Usar la misma fecha
+                            }
+
+                            # Serializar el pago pendiente
+                            serializerPagoPendiente = PagosSerializer(data=datosPagoPendiente)
+
+                            if serializerPagoPendiente.is_valid():
+                                # Guardar el pago pendiente
+                                serializerPagoPendiente.save()
+                                
+                            else:
+                                return Response({"errors": serializerPagoPendiente.errors}, status=HTTP_400_BAD_REQUEST)
+                        else:
+                            return Response({"errors": serializerInscripcion.errors}, status=HTTP_400_BAD_REQUEST)
+                    """
+                    enviar_correo(
+                        destinatario=datosMiembro['correo'],
+                        asunto='Recordatorio de pago',
+                        mensaje="mensaje")
+                    """
+                    return Response({"message": "Miembro registrado con éxito junto con historiales, inscripciones y pagos."}, status=HTTP_201_CREATED)
+                else:
+                    # Recopilar errores de validación
+                    errors = {
+                        "historial_medico": serializerMedico.errors,
+                        "historial_deportivo": serializerDeportivo.errors,
+                    }
+                    return Response(errors, status=HTTP_400_BAD_REQUEST)
+            else:
+                # Error en la validación del miembro
+                return Response(serializerMiembro.errors, status=HTTP_400_BAD_REQUEST)
+
+        except ExpiredSignatureError:
+                # El token ha expirado
+                return Response(data="El token ha expirado", status=HTTP_401_UNAUTHORIZED)
+
+        except InvalidTokenError:
+                # El token es inválido
+                return Response(data="El token es inválido", status=HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            print(e)
+            return Response(data="Ocurrio un error",status=HTTP_400_BAD_REQUEST)
+
+class MiembrosActivos(APIView):
+    def get(self,request):
+        try:
+            inscripciones=Inscripcion.objects.filter(acceso=True)
+            miembros=[]
+            for inscripcion in inscripciones:
+               
+                num_control = inscripcion.miembro.num_control  # Obtener el número de control del miembro
+                print(num_control)
+                if num_control not in [miembro.num_control for miembro in miembros]:
+                    miembros.append(inscripcion.miembro)  # Si no está, agregarlo a la lista
+            serializer=MiembroSerializer(miembros, many=True)
+            return Response(data=serializer.data,status=HTTP_200_OK)
+        except Exception as e:
+            print(e)
+            return Response(data="Ocurrio un error", status=HTTP_400_BAD_REQUEST)      
         
         
         

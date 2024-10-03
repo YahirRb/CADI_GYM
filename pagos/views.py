@@ -7,6 +7,7 @@ from inscripciones.models import Inscripcion
 from .serializers import PagosSerializer,PagosPendientes
 from inscripciones.serializers import InscripcionSerializer
 from datetime import date,datetime, timedelta
+from django.utils import timezone
 from dateutil.relativedelta import relativedelta
 
 class PagosPendientesUsuario(APIView):
@@ -105,4 +106,35 @@ class RegistrarPago(APIView):
         except Exception as e:
             print(e)
             return Response(data="Ocurrio un error",status=HTTP_400_BAD_REQUEST)
-        
+
+class PagosPendientes(APIView):
+    def get(self,request):
+        try:
+            # Obtener la fecha actual
+            hoy = timezone.now()
+            mes_actual = hoy.month  # Mes actual
+            anio_actual = hoy.year  # Año actual
+
+            # Filtrar pagos pendientes donde el mes de pago_proximo sea igual al mes actual
+            pagos = Pagos.objects.filter(
+                estado='pendiente',
+                proximo_pago__month=mes_actual,
+                proximo_pago__year=anio_actual# Filtrar por mes
+            )
+
+            # Si necesitas devolver los datos en un formato específico
+            datos_pagos = []  # Crear una lista para almacenar los datos a devolver
+            for pago in pagos:
+                datos_pagos.append({
+                    'id': pago.id,
+                    'monto': pago.monto,
+                    'pago_proximo': pago.proximo_pago,
+                    'estado': pago.estado,
+                    # Agrega otros campos según necesites
+                })
+
+            return Response(data=datos_pagos, status=HTTP_200_OK)
+
+        except Exception as e:
+            print(f"Ocurrió un error: {e}")  # Para propósitos de depuración
+            return Response(data="Ocurrió un error", status=HTTP_400_BAD_REQUEST)
