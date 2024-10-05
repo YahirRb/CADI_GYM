@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK,HTTP_201_CREATED,HTTP_400_BAD_REQUEST,HTTP_500_INTERNAL_SERVER_ERROR, HTTP_401_UNAUTHORIZED,HTTP_404_NOT_FOUND
-from .models import Miembro,Visitantes
+from .models import Miembro,Visitantes,HistorialMedico
 from inscripciones.models import Inscripcion
 from pagos.models import Pagos
 from login.models import TokenUtilizado
@@ -229,7 +229,7 @@ class RegistroVisitante(APIView):
                 'celular':celular,
                 'clase':clase,
                 'costo':costo,
-                'asistencia': 1
+                'ultima_visita':fecha_hoy
             }
             
             nuevo_visitante=VisitanteSerializer(data=datos_visitante)
@@ -466,15 +466,26 @@ class MiembrosActivos(APIView):
     def get(self,request):
         try:
             inscripciones=Inscripcion.objects.filter(acceso=True)
+            
             miembros=[]
-            for inscripcion in inscripciones:
-               
+            
+            for inscripcion in inscripciones:  
                 num_control = inscripcion.miembro.num_control  # Obtener el número de control del miembro
-                print(num_control)
-                if num_control not in [miembro.num_control for miembro in miembros]:
-                    miembros.append(inscripcion.miembro)  # Si no está, agregarlo a la lista
-            serializer=MiembroSerializer(miembros, many=True)
-            return Response(data=serializer.data,status=HTTP_200_OK)
+                datos_miembro=inscripcion.miembro
+                if num_control not in [miembro['num_control'] for miembro in miembros]:
+                    
+                    historial_medico=HistorialMedico.objects.get(miembro=num_control) 
+                    datos={
+                        'num_control':num_control,
+                        'nombre': datos_miembro.nombre,
+                        'paterno':datos_miembro.paterno,
+                        'materno':datos_miembro.materno,
+                        'edad':datos_miembro.edad,
+                        'celular':datos_miembro.celular,
+                        'alergias':historial_medico.alergias
+                    }
+                    miembros.append(datos)  
+            return Response(data=miembros,status=HTTP_200_OK)
         except Exception as e:
             print(e)
             return Response(data="Ocurrio un error", status=HTTP_400_BAD_REQUEST)      

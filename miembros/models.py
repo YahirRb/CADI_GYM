@@ -73,7 +73,7 @@ class HistorialMedico(models.Model):
     observaciones = models.TextField(blank=True, null=True)
     
     def __str__(self):
-        return f"Historial Médico de Usuario {self.id}"     
+        return f"Historial Médico de Usuario {self.miembro}"     
     
 class HistorialDeportivo(models.Model):
     miembro = models.OneToOneField(Miembro, on_delete=models.CASCADE, primary_key=True)
@@ -81,7 +81,7 @@ class HistorialDeportivo(models.Model):
     actividad_fisica_reciente = models.JSONField(blank=True, null=True)  # JSON con campos {nombre, tiempo}, permite nulos
     lesion = models.JSONField(blank=True, null=True)
     def __str__(self):
-        return f"Historial Deportivo de Usuario {self.id}" 
+        return f"Historial Deportivo de Usuario {self.miembro}" 
     
     
 class Visitantes(models.Model):
@@ -93,5 +93,6 @@ class Visitantes(models.Model):
     clase = models.TextField(blank=True, null=True )
     costo = models.DecimalField(max_digits=10, decimal_places=2)
     asistencias= models.IntegerField(default=1)
+    ultima_visita=models.DateField()
     
     
