@@ -160,7 +160,7 @@ class DatosMiembro(APIView):
             datos = {
                 "num_control": datosMiembro.num_control,
                 "nombre": datosMiembro.nombre,
-                "apellidos": datosMiembro.apellidos,
+                "apellidos": f"{datosMiembro.paterno} {datosMiembro.materno}", 
                 "foto":foto_url,
                 "inscripciones": []
             }
@@ -213,25 +213,48 @@ class  FotoCredencial(APIView):
 class RegistroVisitante(APIView):
     def post(self,request):
         try:
-            fecha_actual = datetime.now().date() 
+            fecha_hoy = timezone.now().date() 
             nombre=request.data.get('nombre')
-            apellidos=request.data.get('apellidos')
+            paterno=request.data.get('paterno')
+            materno=request.data.get('materno')
             correo=request.data.get('correo')
+            costo=request.data.get('costo')
+            clase=request.data.get('clase')
             celular=request.data.get('celular')
             datos_visitante={
                 'nombre':nombre,
-                'apellidos':apellidos,
+                'paterno':paterno,
+                'materno':materno,
                 'correo':correo,
-                'celular':celular
+                'celular':celular,
+                'clase':clase,
+                'costo':costo,
+                'asistencia': 1
             }
-            datos_pago={
-                
-            }
+            
             nuevo_visitante=VisitanteSerializer(data=datos_visitante)
             if nuevo_visitante.is_valid():
-                nuevo_visitante.save()
-                return Response(data="Visitante registrado",status=HTTP_201_CREATED)
+                visitante=nuevo_visitante.save()
+                
+                datos_pago={
+                    "estado":"pagado",
+                    "fecha_pago_realizado":fecha_hoy,
+                    "proximo_pago":fecha_hoy,
+                    "monto":costo,
+                    "visitante":visitante.id
+                }
+                
+                serializer= PagosSerializer(data=datos_pago)
+                if serializer.is_valid(): 
+                    serializer.save()
+                    return Response(data="Visitante registrado",status=HTTP_201_CREATED)
+                else:
+                    print(serializer.errors)
+                    return Response(data="Ocurrio un error", status=HTTP_400_BAD_REQUEST)
+                
             else:
+                print("error")
+                print(nuevo_visitante.errors)
                 return Response(data="Error al registrar visitante",status=HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response(data="Ocurrio un error",status=HTTP_400_BAD_REQUEST)
@@ -491,4 +514,4 @@ class VisitantesRegistrados(APIView):
             print(e)
             return Response(data="Ocurrio un error", status=HTTP_400_BAD_REQUEST)
     
-        
+    

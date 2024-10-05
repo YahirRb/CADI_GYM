@@ -9,7 +9,8 @@ class Miembro(models.Model):
     num_control = models.AutoField(primary_key=True) 
     fecha = models.DateField()  # Fecha de registro automática # Número de control único
     nombre = models.CharField(max_length=100)
-    apellidos = models.CharField(max_length=100)
+    paterno = models.CharField(max_length=100)
+    materno = models.CharField(max_length=100)
     direccion = models.TextField()  # Almacenará direcciones largas
     fecha_nacimiento = models.DateField()
     edad = models.IntegerField()
@@ -30,7 +31,7 @@ class Miembro(models.Model):
     foto = models.ImageField(upload_to='images/', null=True, blank=True)
     
     def __str__(self):
-        return f"{self.nombre} {self.apellidos} - {self.num_control}"
+        return f"{self.nombre} - {self.num_control}"
     
     def save(self, *args, **kwargs):
         
@@ -46,7 +47,7 @@ class Miembro(models.Model):
                 defaults={
                     'email': self.correo,
                     'first_name':self.nombre,
-                    'last_name':self.apellidos,
+                    'last_name':self.paterno,
                     'password':  make_password(password_temporal),
                     'roles':rol.name,
                     'num_control':self.num_control
@@ -85,11 +86,12 @@ class HistorialDeportivo(models.Model):
     
 class Visitantes(models.Model):
     nombre=models.CharField(max_length=100)
-    apellidos = models.CharField(max_length=100)
+    paterno = models.CharField(max_length=100)
+    materno = models.CharField(max_length=100)
     correo = models.EmailField(unique=True,blank=True, null=True) 
     celular = models.CharField(max_length=15,blank=True, null=True)
     clase = models.TextField(blank=True, null=True )
     costo = models.DecimalField(max_digits=10, decimal_places=2)
-    asistencias= models.IntegerField(default=0)
+    asistencias= models.IntegerField(default=1)
     
     

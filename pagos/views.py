@@ -142,7 +142,9 @@ class PagosPendientes(APIView):
                 inscripcion=pago.inscripcion 
                 datos_pagos.append({
                     'id': pago.id,
-                    'nombre':f"{miembro.nombre} {miembro.apellidos}",
+                    'nombre': miembro.nombre  ,
+                    'paterno':miembro.paterno,
+                    'materno':miembro.materno,
                     'telefono':miembro.celular,
                     'monto': pago.monto,
                     'disciplina':inscripcion.clase,
