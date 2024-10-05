@@ -31,7 +31,12 @@ class RegistrarAsistencia(APIView):
             id_inscripcion= request.data.get('id_inscripcion')
             fecha=request.data.get('fecha')
             hora=request.data.get('hora')
+            print(miembro)
+            print(id_inscripcion)
+            print(fecha)
+            print(hora)
             inscripcion=Inscripcion.objects.get(id=id_inscripcion)
+            print(inscripcion)
             ultimoPago=Pagos.objects.filter(inscripcion=id_inscripcion,estado='pendiente').latest('proximo_pago')
             datos_asistencia = {
                 'miembro': miembro,  # Asegúrate que coincida con el campo en el modelo
@@ -65,6 +70,7 @@ class RegistrarAsistencia(APIView):
             else:
                 return Response(data="No tienes acceso",status=HTTP_403_FORBIDDEN)
         except Exception as e:
+            print(e)
             return Response(data="Ocurrio un error",status=HTTP_400_BAD_REQUEST)
         
 class CambioModalidad(APIView):

@@ -13,14 +13,15 @@ class Miembro(models.Model):
     direccion = models.TextField()  # Almacenará direcciones largas
     fecha_nacimiento = models.DateField()
     edad = models.IntegerField()
-    tipo_sangre = models.CharField(max_length=3) 
+    tipo_sangre = models.CharField(max_length=3, blank=True, null=True) 
     facebook = models.TextField(blank=True, null=True)  # Opcional
     correo = models.EmailField(unique=True)  # Campo de correo único
     curp = models.CharField(max_length=18, unique=True)  # CURP única
-    nss = models.CharField(max_length=11, unique=True)  # Número de seguridad social único
-    dependencia = models.CharField(max_length=100)
+    nss = models.CharField(max_length=11, unique=True,blank=True, null=True)  # Número de seguridad social único
+    dependencia = models.CharField(max_length=100, blank=True, null=True)
     telefono_fijo = models.CharField(max_length=15, blank=True, null=True)
     celular = models.CharField(max_length=15)
+    estado_civil=models.CharField(max_length=15, blank=True, null=True)
     hijos = models.IntegerField(blank=True, null=True)  # Permitir nulos
     edades = models.CharField(max_length=100, blank=True, null=True)  # Permitir nulos
     padre_tutor = models.CharField(max_length=100, blank=True, null=True)  # Permitir nulos
@@ -85,6 +86,10 @@ class HistorialDeportivo(models.Model):
 class Visitantes(models.Model):
     nombre=models.CharField(max_length=100)
     apellidos = models.CharField(max_length=100)
-    correo = models.EmailField() 
+    correo = models.EmailField(unique=True,blank=True, null=True) 
     celular = models.CharField(max_length=15,blank=True, null=True)
+    clase = models.TextField(blank=True, null=True )
+    costo = models.DecimalField(max_digits=10, decimal_places=2)
+    asistencias= models.IntegerField(default=0)
+    
     

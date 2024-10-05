@@ -137,13 +137,20 @@ class PagosPendientes(APIView):
             # Si necesitas devolver los datos en un formato específico
             datos_pagos = []  # Crear una lista para almacenar los datos a devolver
             for pago in pagos:
+                miembro=pago.miembro 
+                print(miembro.celular)
+                inscripcion=pago.inscripcion 
                 datos_pagos.append({
                     'id': pago.id,
+                    'nombre':f"{miembro.nombre} {miembro.apellidos}",
+                    'telefono':miembro.celular,
                     'monto': pago.monto,
-                    'pago_proximo': pago.proximo_pago,
+                    'disciplina':inscripcion.clase,
+                    'proximo_pago': pago.proximo_pago,
                     'estado': pago.estado,
                     # Agrega otros campos según necesites
                 })
+            print(datos_pagos)
 
             return Response(data=datos_pagos, status=HTTP_200_OK)
 

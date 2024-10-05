@@ -21,7 +21,10 @@ class Inscripcion(models.Model):
     costo = models.DecimalField(max_digits=10, decimal_places=2)  # Monto de inscripción
     modalidad = models.CharField(max_length=50)
     clase = models.TextField(blank=True, null=True )
-    miembro = models.ForeignKey(Miembro, on_delete=models.CASCADE)  # Relación con el miembro
+    miembro = models.ForeignKey(Miembro, on_delete=models.CASCADE)
+    horario_inicio = models.TimeField(blank=True, null=True)
+    horario_fin = models.TimeField(blank=True, null=True)
+
 
     def __str__(self):
         return f"Inscripción de {self.miembro.nombre} - Fecha: {self.fecha}"

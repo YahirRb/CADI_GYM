@@ -455,6 +455,40 @@ class MiembrosActivos(APIView):
         except Exception as e:
             print(e)
             return Response(data="Ocurrio un error", status=HTTP_400_BAD_REQUEST)      
-        
-        
+
+class VisitantesRegistrados(APIView):
+    def put(self,request):
+        try:
+            correo=request.data.get('correo')
+            clase=request.data.get('clase')
+            costo=request.data.get('costo')
+            visitante=Visitantes.objects.get(correo=correo, clase=clase)
+            visitante.asistencias +=1
+            print(visitante.asistencias)
+            fecha_hoy = timezone.now().date()
+            print(fecha_hoy)
+            
+            datos_pago={
+                "estado":"pagado",
+                "fecha_pago_realizado":fecha_hoy,
+                "proximo_pago":fecha_hoy,
+                "monto":costo,
+                "visitante":visitante.id
+            }
+            
+            serializer=PagosSerializer(data=datos_pago)
+            if serializer.is_valid():
+                visitante.save()
+                serializer.save()
+            else:
+                print(serializer.errors)
+                return Response(data="Ocurrio un error", status=HTTP_400_BAD_REQUEST)
+            
+            return Response(data="Datos registrados", status=HTTP_200_OK)
+        except Visitantes.DoesNotExist :
+            return Response(data="No existen registros",status=HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(e)
+            return Response(data="Ocurrio un error", status=HTTP_400_BAD_REQUEST)
+    
         

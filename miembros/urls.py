@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import RegistroMiembro,DatosMiembro,FotoCredencial,RegistroVisitante,ListarVisitantes,SuspenderMiembro, RegistroTemporal,MiembrosActivos,EnlaceTemporal
+from .views import RegistroMiembro,DatosMiembro,FotoCredencial,RegistroVisitante,ListarVisitantes,SuspenderMiembro, RegistroTemporal,MiembrosActivos,EnlaceTemporal,VisitantesRegistrados
 
 urlpatterns = [
     path('registrar/', RegistroMiembro.as_view(), name='registrar_miembro'),
@@ -11,4 +11,5 @@ urlpatterns = [
     path('registro_temporal/', RegistroTemporal.as_view(), name='registro_temporal'),
     path('activos/',MiembrosActivos.as_view(), name='activos'),
     path('enlace/',EnlaceTemporal.as_view(), name='enlace'),
+    path('visitante_existente/', VisitantesRegistrados.as_view(), name='visitante_existente'),
 ]
