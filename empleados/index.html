@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notificaciones</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #notifications {
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 300px;
+            overflow-y: scroll;
+            margin-bottom: 10px;
+        }
+        #messageInput {
+            width: 300px;
+            padding: 5px;
+        }
+        #sendButton {
+            padding: 5px 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Notificaciones</h1>
+
+    <div id="notifications"></div>
+
+    <input type="text" id="messageInput" placeholder="Escribe tu mensaje...">
+    <button id="sendButton">Enviar</button>
+
+    <script>
+        const canal = "33";  // Cambia esto según tus necesidades (asegúrate de que sea un string)
+        const notificationsElement = document.getElementById("notifications");
+        const messageInput = document.getElementById("messageInput");
+        const sendButton = document.getElementById("sendButton");
+
+        // Conectar al WebSocket
+        const socket = new WebSocket(`ws://127.0.0.1:8000/ws/notificaciones/${canal}/`);
+
+        // Al abrir la conexión
+        socket.onopen = function() {
+            console.log("Conexión WebSocket abierta");
+        };
+
+        // Al recibir un mensaje
+        socket.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            console.log(data); // Imprime el objeto recibido
+            const message = data.mensaje;  // Cambiado de 'message' a 'mensaje'
+            console.log("Mensaje recibido:", message); // Imprime el mensaje específico recibido
+            const notification = document.createElement("div");
+            notification.textContent = message;
+            notificationsElement.appendChild(notification);
+            notificationsElement.scrollTop = notificationsElement.scrollHeight;  // Desplazarse hacia abajo
+        };
+
+        // Al cerrar la conexión
+        socket.onclose = function(event) {
+            console.log("Conexión WebSocket cerrada", event);
+        };
+
+        // Enviar un mensaje
+        sendButton.onclick = function() {
+            const message = messageInput.value;
+            if (message) {
+                socket.send(JSON.stringify({ mensaje: message }));  // Cambiado de 'message' a 'mensaje'
+                messageInput.value = "";  // Limpiar el campo de entrada
+            }
+        };
+    </script>
+
+</body>
+</html>

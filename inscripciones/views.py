@@ -10,6 +10,7 @@ from pagos.serializers import PagosSerializer
 from inscripciones.serializers import InscripcionSerializer,AsistenciaSerializer
 from pagos.models import Pagos
 from cadi_gym.utils import enviar_correo
+from empleados.notificaciones.notificaciones import  enviar_notificacion_a_alumno
 
 class Clases(APIView):
     def get(self, resquest):
@@ -214,12 +215,11 @@ class NotificarPagos(APIView):
                     mensaje=mensaje)
                 # Agregar el mensaje a la lista
                 mensajes.append(mensaje)
-
+                print(mensajes)
+                enviar_notificacion_a_alumno(miembro.num_control,mensaje)
             
-
             # Devolver los mensajes generados
             return Response(mensajes, status=200)
-
         except Exception as e:
             print(e)
             return Response({"error": "Ocurrió un error al procesar las notificaciones."}, status=400)

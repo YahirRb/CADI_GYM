@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 import os
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,8 +26,9 @@ SECRET_KEY = os.environ.get('SECRET_KEY', default='your secret key')
 # SECURITY WARNING: don't run with debug turned on in production!
 #DEBUG = True
 DEBUG = 'RENDER' not in os.environ
-ALLOWED_HOSTS = []
 """
+ALLOWED_HOSTS = []
+
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
@@ -47,9 +49,21 @@ INSTALLED_APPS = [
     'miembros',
     'pagos',
     'inscripciones',
-    'login',
+    'login', 
+    'channels',
+    'empleados',
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        
+    ), 
+    
+    #'DEFAULT_PERMISSION_CLASSES': (
+    #    'rest_framework.permissions.IsAuthenticated',
+    #), 
+}
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware', 
     'django.middleware.security.SecurityMiddleware',
@@ -61,11 +75,13 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-CORS_ALLOW_ALL_ORIGINS = True
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
+
+
+
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=5),  # Vida del token de acceso
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),  # Vida del token de refresh
 }
 
 ROOT_URLCONF = 'cadi_gym.urls'
@@ -86,8 +102,17 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'cadi_gym.wsgi.application'
-
+ASGI_APPLICATION = 'cadi_gym.asgi.application'
+#WSGI_APPLICATION = 'cadi_gym.wsgi.application'
+CORS_ALLOW_ALL_ORIGINS = True
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("rediss://red-cr0mani3esus73ak8q10:F8mGyzFOZcA9UMAhTnADf9jo3HvV3gSR@oregon-redis.render.com:6379")],
+        },
+    }
+}
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases

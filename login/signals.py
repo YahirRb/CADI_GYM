@@ -6,7 +6,7 @@ from django.apps import apps
 def crear_roles(sender, **kwargs):
     # Define los grupos y los permisos asociados
     roles = {
-        'empleado': ['add_miembro', 'change_miembro', 'view_miembro', 'add_historialmedico', 'change_historialmedico','view_historialmedico','add_historialdeportivo', 'change_historialdeportivo','view_historialdeportivo'],
+        'employee': ['add_miembro', 'change_miembro', 'view_miembro', 'add_historialmedico', 'change_historialmedico','view_historialmedico','add_historialdeportivo', 'change_historialdeportivo','view_historialdeportivo'],
         'miembro': ['view_miembro', 'view_historialmedico','view_historialdeportivo']
     }
     
