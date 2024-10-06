@@ -120,6 +120,8 @@ class RegistrarInscripcion(APIView):
             modalidad=request.data.get('modalidad')
             costo=request.data.get('costo')
             monto=request.data.get('monto_total')
+            horario_inicio=request.data.get('horario_inicio')
+            horario_fin=request.data.get('horario_fin')
             fecha_str = request.data.get('fecha')  # Asegúrate de que la fecha está en un formato que puedas analizar
             print(fecha_str)
 # Convertir la fecha desde una cadena a un objeto datetime
@@ -137,7 +139,9 @@ class RegistrarInscripcion(APIView):
                 'clase':clase,
                 'modalidad':modalidad,
                 'costo':costo,
-                'fecha':fecha.date()
+                'fecha':fecha.date(),
+                'horario_inicio':horario_inicio,
+                'horario_fin':horario_fin,
             }
             
             serializerInscripcion=InscripcionSerializer(data=datos_inscripcion)
