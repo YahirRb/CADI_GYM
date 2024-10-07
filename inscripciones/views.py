@@ -231,3 +231,50 @@ class NotificarPagos(APIView):
         except Exception as e:
             print(e)
             return Response({"error": "Ocurrió un error al procesar las notificaciones."}, status=HTTP_400_BAD_REQUEST)
+
+
+class InscripcionesMiembro(APIView):
+    def get(self,request):
+        try:
+            num_control=request.GET.get('num_control')
+            inscripciones= Inscripcion.objects.filter(miembro=num_control,acceso=True)
+            serializer=InscripcionSerializer(inscripciones,many=True)
+            return Response(data=serializer.data,status=HTTP_200_OK)
+
+        except Exception as e:
+            print(e)
+            return Response(data="Ocurrio un error",status=HTTP_400_BAD_REQUEST)
+
+class BajaInscripcion(APIView):
+    def put(self,request):
+        try:
+            lista_id=request.data.get('id_inscripcion')
+            fecha_hoy = datetime.now().date()
+            
+            
+            for id in lista_id:
+                inscripcion=Inscripcion.objects.get(id=id,acceso=True)
+                pagos=Pagos.objects.filter(inscripcion=id, estado='pendiente')
+                for pago in pagos:
+                    if fecha_hoy < pago.proximo_pago:
+                        
+                        inscripcion.acceso=False
+                        inscripcion.save()
+                        pago.estado='cancelado'
+                        pago.save()
+                    else:
+                        return Response(data=f"No puede dar de baja la clase {inscripcion.clase}",status=HTTP_400_BAD_REQUEST)
+            
+            
+            return Response(data="Baja exitosa",status=HTTP_200_OK)
+        except Exception as e:
+            print(e)
+            return Response(data="Ocurrio un error",status=HTTP_400_BAD_REQUEST)
+
+
+
+
+
+
+
+

@@ -130,7 +130,11 @@ class RegistroMiembro(APIView):
                         asunto='Recordatorio de pago',
                         mensaje="mensaje")
                     """
-                    return Response({"message": "Miembro registrado con éxito junto con historiales, inscripciones y pagos."}, status=HTTP_201_CREATED)
+                    usuario = {
+                        "correo": datosMiembro['correo'],
+                        "password": password
+                    }
+                    return Response(data=usuario, status=HTTP_201_CREATED)
                 else:
                     # Recopilar errores de validación
                     errors = {
