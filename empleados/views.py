@@ -42,6 +42,7 @@ class RegistroEmpleado(APIView):
                 user.groups.add(rol)
                 return Response(data="Empleado registrado",status=HTTP_201_CREATED)
             else:
+                print(serializer.errors)
                 return Response(data="Hay un error en los datos",status=HTTP_404_NOT_FOUND)
         except Exception as e:
             print(e)
