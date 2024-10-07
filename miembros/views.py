@@ -213,7 +213,7 @@ class  FotoCredencial(APIView):
 class RegistroVisitante(APIView):
     def post(self,request):
         try:
-            fecha_hoy = timezone.now().date() 
+            fecha_hoy = datetime.now().date()
             nombre=request.data.get('nombre')
             paterno=request.data.get('paterno')
             materno=request.data.get('materno')
@@ -257,6 +257,7 @@ class RegistroVisitante(APIView):
                 print(nuevo_visitante.errors)
                 return Response(data="Error al registrar visitante",status=HTTP_400_BAD_REQUEST)
         except Exception as e:
+            print(e)
             return Response(data="Ocurrio un error",status=HTTP_400_BAD_REQUEST)
             
 class ListarVisitantes(APIView):
@@ -268,6 +269,7 @@ class ListarVisitantes(APIView):
             
             return Response(data=serializer.data,status=HTTP_200_OK)
         except Exception as e:
+            print(e)
             return Response(data="Ocurrio un error",status=HTTP_400_BAD_REQUEST)
         
 class SuspenderMiembro(APIView):
@@ -298,17 +300,14 @@ class EnlaceTemporal(APIView):
         try:
             correo=request.GET.get('correo')
             payload = {  
-                'exp': timezone.now() + timedelta(minutes=5)  # Expiración de 5 minutos
-            }
-
+                'exp': timezone.localtime(timezone.now()) + timedelta(minutes=5)  # Expiración de 5 minutos
+            } 
             token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
             enviar_correo(
                 destinatario=correo,
                 asunto='Enlace de registro',
-                mensaje=f"https://cadi-minatitlan.site/{token}")
-            print(token)
-            tokenn='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Mjc5NzE3MDl9.XmPS2eNL3Gz0-jMBQA3tGip9P1GEEcw3E61sBRWvZR4'
-            
+                mensaje=f"https://cadi-minatitlan.site/gym-users/add/{token}")
+             
             return Response(data="Correo enviado",status=HTTP_200_OK)
         except ExpiredSignatureError:
                 # El token ha expirado
@@ -499,7 +498,7 @@ class VisitantesRegistrados(APIView):
             visitante=Visitantes.objects.get(correo=correo, clase=clase)
             visitante.asistencias +=1
             print(visitante.asistencias)
-            fecha_hoy = timezone.now().date()
+            fecha_hoy = datetime.now().date()
             print(fecha_hoy)
             
             datos_pago={

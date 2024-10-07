@@ -184,7 +184,7 @@ class NotificarPagos(APIView):
     def get(self, request):
         try:
             # Obtener la fecha de hoy
-            fecha_hoy = timezone.now().date()
+            fecha_hoy = datetime.now().date()
 
             # Definir las fechas de vencimiento (hoy, +1 día, +3 días, +5 días)
             fechas_vencimiento = [
@@ -199,9 +199,10 @@ class NotificarPagos(APIView):
                 proximo_pago__in=fechas_vencimiento,
                 estado='pendiente'  # Solo los pagos que no han sido realizados
             )
-
+            print(fecha_hoy)
             mensajes = []
             for pago in pagos_por_vencer: 
+                print(pago)
                 # Calcular los días restantes
                 dias_restantes = (pago.proximo_pago - fecha_hoy).days
                 miembro = pago.miembro  # Obtener el miembro asociado al pago
@@ -209,21 +210,24 @@ class NotificarPagos(APIView):
                 print(inscripcion.id)
                 clase_nombre =  inscripcion.clase  # Asegúrate de que `clase` y `nombre` están correctos
                 
-                if dias_restantes == 0 and pago.pago_realizado is None:
+                if dias_restantes == 0 and pago.fecha_pago_realizado is None:
                     mensaje = f"Miembro {miembro.nombre}, hoy es su último día para realizar el pago por la clase {clase_nombre}."
                 else:
                     mensaje = f"Miembro {miembro.nombre}, le quedan {dias_restantes} días para realizar su pago por la clase {clase_nombre}."
-                enviar_correo(
-                    destinatario=miembro.correo,
-                    asunto='Recordatorio de pago',
-                    mensaje=mensaje)
+                
                 # Agregar el mensaje a la lista
                 mensajes.append(mensaje)
                 print(mensajes)
                 enviar_notificacion_a_alumno(miembro.num_control,mensaje)
+                
+                enviar_correo(
+                    destinatario=miembro.correo,
+                    asunto='Recordatorio de pago',
+                    mensaje=mensaje)
+                    
             
             # Devolver los mensajes generados
-            return Response(mensajes, status=200)
+            return Response(mensajes,status=HTTP_200_OK)
         except Exception as e:
             print(e)
-            return Response({"error": "Ocurrió un error al procesar las notificaciones."}, status=400)
+            return Response({"error": "Ocurrió un error al procesar las notificaciones."}, status=HTTP_400_BAD_REQUEST)

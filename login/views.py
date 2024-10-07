@@ -43,6 +43,7 @@ class LogIn(TokenObtainPairView):
         except User.DoesNotExist:
             return Response(data={"detail": "Usuario o contraseña incorrectos"}, status=status.HTTP_401_UNAUTHORIZED)
         except Exception as e:
+            print(e)
             return Response(data={"detail": "Ocurrio un error"}, status=status.HTTP_400_BAD_REQUEST)
         
 from rest_framework_simplejwt.exceptions import TokenError

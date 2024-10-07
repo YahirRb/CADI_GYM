@@ -12,7 +12,13 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 import os
 from pathlib import Path
 from datetime import timedelta
+import environ
 
+# Inicializa la lectura de las variables de entorno
+env = environ.Env()
+
+# Lee el archivo .env
+environ.Env.read_env()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -52,6 +58,7 @@ INSTALLED_APPS = [
     'login', 
     'channels',
     'empleados',
+    
 ]
 
 REST_FRAMEWORK = {
@@ -128,9 +135,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'postgres',
-        'USER': 'postgres.zkhbfudrvxvtvnusmxsl',  # Si creaste un usuario específico
-        'PASSWORD': 'vrL9z04rs7lhrmfN',   # La contraseña del usuario
-        'HOST': 'aws-0-us-east-1.pooler.supabase.com',            # O el nombre del host de tu servidor de base de datos
+        'USER':  env.str('DATABASE_USER'), # Si creaste un usuario específico
+        'PASSWORD':  env.str('DATABASE_PASSWORD'),  # La contraseña del usuario
+        'HOST':  env.str('DATABASE_HOST'),            # O el nombre del host de tu servidor de base de datos
         'PORT': '6543',                 # El puerto por defecto para PostgreSQL
     }
 } 
@@ -187,7 +194,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587  # Puerto de Gmail para SMTP
 EMAIL_USE_TLS = True  # Habilitar TLS para seguridad
-EMAIL_HOST_USER = 'confeticonfiesta1@gmail.com'  # Tu dirección de correo electrónico
-EMAIL_HOST_PASSWORD = 'vgeb upoi mrjv pajv'  # La contraseña de tu correo electrónico
+EMAIL_HOST_USER =  env.str('EMAIL_HOST_USER')  # Tu dirección de correo electrónico
+EMAIL_HOST_PASSWORD = env.str('EMAIL_HOST_PASSWORD')  # La contraseña de tu correo electrónico
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
