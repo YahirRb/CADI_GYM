@@ -1,11 +1,11 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK,HTTP_201_CREATED,HTTP_400_BAD_REQUEST,HTTP_500_INTERNAL_SERVER_ERROR, HTTP_401_UNAUTHORIZED,HTTP_404_NOT_FOUND
-from .models import Miembro,Visitantes,HistorialMedico
+from .models import Miembro,Visitantes,HistorialMedico,HistorialDeportivo
 from inscripciones.models import Inscripcion
 from pagos.models import Pagos
 from login.models import TokenUtilizado
-from .serializers import MiembroSerializer, HistorialDeportivoSerializer,HistorialMedicoSerializer,Credencial,VisitanteSerializer
+from .serializers import MiembroSerializer, HistorialDeportivoSerializer,HistorialMedicoSerializer,Credencial,VisitanteSerializer,DatosCompletos
 from pagos.serializers import PagosSerializer
 from inscripciones.serializers import InscripcionSerializer
 from datetime import datetime, timedelta
@@ -549,6 +549,24 @@ class EditarMiembro(APIView):
             return Response(data="Ocurrio un error", status=HTTP_400_BAD_REQUEST)
  """
 
-   
-    
+class DatosUsuario(APIView):
+    def get(self,request):
+        try:
+            
+            num_control=request.GET.get('user_id')
+            historialDeportivo=HistorialDeportivo.objects.get(miembro=num_control)
+            historialMedico=HistorialMedico.objects.get(miembro=num_control)
+            miembro=Miembro.objects.get(num_control=num_control)
+            serializerMiembro=MiembroSerializer(miembro)
+            serializerDeportivo=HistorialDeportivoSerializer(historialDeportivo)
+            serializerMedico=HistorialMedicoSerializer(historialMedico)
+            datos={
+                'datos_usuario':serializerMiembro.data,
+                'historial_medico':serializerMedico.data,
+                'historial_deportivo':serializerDeportivo.data
+            } 
+            return Response(data=datos,status=HTTP_200_OK)
+        except Exception as e:
+            print(e)
+            return Response(data="Ocurrio un error", status=HTTP_400_BAD_REQUEST)
     

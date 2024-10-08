@@ -28,3 +28,10 @@ class VisitanteSerializer(serializers.ModelSerializer):
         model = Visitantes
         fields = '__all__'
         
+class DatosCompletos(serializers.ModelSerializer):
+    historial_medico = HistorialMedicoSerializer(read_only=True)
+    historial_deportivo = HistorialDeportivoSerializer(read_only=True)
+
+    class Meta:
+        model = Miembro
+        fields = '__all__' 

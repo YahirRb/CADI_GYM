@@ -41,7 +41,8 @@
         const sendButton = document.getElementById("sendButton");
 
         // Conectar al WebSocket
-        const socket = new WebSocket(`wss://cady-gym.onrender.com/ws/notificaciones/${canal}/`);
+        const socket = new WebSocket(`ws://127.0.0.1:8000/ws/notificaciones/${canal}/`);
+
 
         // Al abrir la conexión
         socket.onopen = function() {
