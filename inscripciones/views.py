@@ -271,7 +271,16 @@ class BajaInscripcion(APIView):
             print(e)
             return Response(data="Ocurrio un error",status=HTTP_400_BAD_REQUEST)
 
-
+class AsistenciaDiaActual(APIView):
+    def get(self,request):
+        try:
+            fecha_hoy = datetime.now().date()
+            asistencias=Asistencia.objects.filter(fecha=fecha_hoy)
+            serializer=AsistenciaSerializer(asistencias, many=True)
+            return Response(data=serializer.data,status=HTTP_200_OK)
+        except Exception as e:
+            print(e)
+            return Response(data="Ocurrio un error",status=HTTP_400_BAD_REQUEST) 
 
 
 

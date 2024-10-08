@@ -25,23 +25,35 @@ class RegistroMiembro(APIView):
     def post(self, request):
         try:
             # Obtener datos del request
+            #foto = request.FILES.get('foto')
+            
             datosMiembro = request.data.get('datos_miembro')
             historialMedico = request.data.get('historial_medico')
             historialDeportivo = request.data.get('historial_deportivo') 
-            datosInscripcion = request.data.get('datos_inscripcion')
+            datosInscripcion = request.data.get('datos_inscripcion') 
             fecha_str=datosMiembro['fecha']
+            print(fecha_str)
             fecha = datetime.strptime(fecha_str, '%Y-%m-%d')
             # Serializar el miembro
             curp= datosMiembro['curp']
+            
             password= curp[:10]
             print(password)
             serializerMiembro = MiembroSerializer(data=datosMiembro)
-
+            #if not foto:
+            #    return Response({"error": "No se ha proporcionado ninguna imagen."}, status= HTTP_400_BAD_REQUEST)
             if serializerMiembro.is_valid():
-                # Guardar el miembro
+                
                 miembro = serializerMiembro.save()
-                num_control = miembro.num_control  # Obtener el identificador del miembro
-
+                num_control = miembro.num_control
+                path_on_supastorage = f"images/{miembro.num_control}.png"
+                #res = supabase.storage.from_('cadi_gym').upload(
+                 #   path_on_supastorage,
+                  #  file=foto.read(),
+                   # file_options={"content-type": foto.content_type}
+                #)
+                miembro.foto = path_on_supastorage
+                miembro.save()
                 # Asignar ID de miembro a historiales
                 historialMedico['miembro'] = num_control
                 historialDeportivo['miembro'] = num_control
@@ -187,7 +199,7 @@ class  FotoCredencial(APIView):
         user_id = request.data.get('user_id')
         
         print(user_id)
-        foto = request.FILES.get('foto')  
+        foto = request.FILES.get('foto')
         if not foto:
             return Response({"error": "No se ha proporcionado ninguna imagen."}, status= HTTP_400_BAD_REQUEST)
         miembro = Miembro.objects.get(num_control=user_id)
@@ -527,5 +539,16 @@ class VisitantesRegistrados(APIView):
         except Exception as e:
             print(e)
             return Response(data="Ocurrio un error", status=HTTP_400_BAD_REQUEST)
+""" 
+class EditarMiembro(APIView):
+    def put(self,request):
+        try:
+            
+        except Exception as e:
+            print(e)
+            return Response(data="Ocurrio un error", status=HTTP_400_BAD_REQUEST)
+ """
+
+   
     
     
