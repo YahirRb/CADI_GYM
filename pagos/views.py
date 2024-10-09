@@ -159,3 +159,54 @@ class PagosPendientes(APIView):
         except Exception as e:
             print(f"Ocurrió un error: {e}")  # Para propósitos de depuración
             return Response(data="Ocurrió un error", status=HTTP_400_BAD_REQUEST)
+        
+        
+class PagosFiltro(APIView):
+    def get(self,request):
+        try:
+            mesMinimo = request.GET.get('mes_minimo')
+            mesMaximo = request.GET.get('mes_maximo')
+            anio = request.GET.get('anio')
+            fechaMinima = request.GET.get('fecha_minima')
+            fechaMaxima = request.GET.get('fecha_maxima')
+            estado=request.GET.get('estado')
+            clase=request.GET.get('clase')
+            filtros = {}
+            datos=[]
+            # Filtro para mes (rango de meses)
+            if mesMinimo and mesMaximo and anio:
+                # Filtrar por rango de meses dentro de un año específico
+                filtros['proximo_pago__month__range'] = (mesMinimo, mesMaximo)
+                filtros['proximo_pago__year'] = anio  # También filtramos por año específico
+
+            # Filtro para rango de fechas
+            if fechaMinima and fechaMaxima:
+                # Filtrar por rango de fechas
+                filtros['fecha_pago__range'] = (fechaMinima, fechaMaxima)
+
+            # Otros filtros opcionales
+            if estado:
+                filtros['estado'] = estado  # Filtrar por estado
+            if clase:
+                filtros['clase'] = clase  # Filtrar por clase
+            print(filtros)
+            pagos = Pagos.objects.filter(**filtros)
+            for pago in pagos:
+                miembro=pago.miembro
+                datos.append({
+                    'nombre':miembro.nombre,
+                    'paterno':miembro.paterno,
+                    'materno':miembro.materno,
+                    'estado':pago.estado,
+                    'fecha_pagado':pago.fecha_pago_realizado,
+                    'proximo_pago':pago.proximo_pago,
+                    'monto':pago.monto
+                })
+            serializer=PagosSerializer(pagos, many=True)
+            print(datos)
+            return Response(data=datos)
+            
+        except Exception as e:
+            print(f"Ocurrió un error: {e}")  # Para propósitos de depuración
+            return Response(data="Ocurrió un error", status=HTTP_400_BAD_REQUEST)
+    

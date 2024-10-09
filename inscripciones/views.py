@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK,HTTP_201_CREATED,HTTP_400_BAD_REQUEST,HTTP_500_INTERNAL_SERVER_ERROR,HTTP_403_FORBIDDEN
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
+from miembros.models import Miembro
 from django.utils import timezone
 from  .models import Inscripcion,GimnasiaArtistica, GimnasioMixto,Asistencia
 from .serializers import ClasesSerializer
@@ -276,8 +277,23 @@ class AsistenciaDiaActual(APIView):
         try:
             fecha_hoy = datetime.now().date()
             asistencias=Asistencia.objects.filter(fecha=fecha_hoy)
-            serializer=AsistenciaSerializer(asistencias, many=True)
-            return Response(data=serializer.data,status=HTTP_200_OK)
+            datos_asistencias = []
+            for asistencia in asistencias:
+                inscripcion=asistencia.inscripcion
+                datos_inscripcion=Inscripcion.objects.get(id= inscripcion.id)
+                print(inscripcion.miembro)
+                miembro= Miembro.objects.get(num_control=datos_inscripcion.miembro.num_control)
+                datos_asistencias.append({
+                    'hora': asistencia.hora,
+                    'fecha': asistencia.fecha,
+                    'nombre':miembro.nombre,
+                    'paterno':miembro.paterno,
+                    'materno':miembro.materno,
+                    'clase':datos_inscripcion.clase,
+                    'modalidad':datos_inscripcion.modalidad
+                })
+             
+            return Response(data=datos_asistencias,status=HTTP_200_OK)
         except Exception as e:
             print(e)
             return Response(data="Ocurrio un error",status=HTTP_400_BAD_REQUEST) 
