@@ -10,5 +10,5 @@ urlpatterns = [
     path('baja/', BajaInscripcion.as_view(), name='baja_inscripcion'),
     path('inscripciones/', InscripcionesMiembro.as_view(), name='inscripciones_usuario'),
     path('asistencias_dia/', AsistenciaDiaActual.as_view(), name='asistencias_dia'),
-    path('filtro_asistencias/', AsistenciasFiltro.as_view(), name='filtro_asistencias'),
+    #path('filtro_asistencias/', AsistenciasFiltro.as_view(), name='filtro_asistencias'),
 ]

@@ -275,28 +275,62 @@ class BajaInscripcion(APIView):
 class AsistenciaDiaActual(APIView):
     def get(self,request):
         try:
-            fecha_hoy = datetime.now().date()
-            asistencias=Asistencia.objects.filter(fecha=fecha_hoy)
-            datos_asistencias = []
-            for asistencia in asistencias:
-                inscripcion=asistencia.inscripcion
-                datos_inscripcion=Inscripcion.objects.get(id= inscripcion.id)
-                print(inscripcion.miembro)
-                miembro= Miembro.objects.get(num_control=datos_inscripcion.miembro.num_control)
-                datos_asistencias.append({
-                    'hora': asistencia.hora,
-                    'fecha': asistencia.fecha,
-                    'nombre':miembro.nombre,
-                    'paterno':miembro.paterno,
-                    'materno':miembro.materno,
-                    'clase':datos_inscripcion.clase,
-                    'modalidad':datos_inscripcion.modalidad
-                })
-             
+            mesMinimo = request.GET.get('mes_minimo')
+            mesMaximo = request.GET.get('mes_maximo')
+            anio = request.GET.get('anio')
+            fechaMinima = request.GET.get('fecha_minima')
+            fechaMaxima = request.GET.get('fecha_maxima')  
+            filtros = {} 
+            # Filtro para mes (rango de meses)
+            if mesMinimo and mesMaximo and anio:
+                # Filtrar por rango de meses dentro de un año específico
+                filtros['fecha__month__range'] = (mesMinimo, mesMaximo)
+                filtros['fecha__year'] = anio  # También filtramos por año específico
+
+            # Filtro para rango de fechas
+            if fechaMinima and fechaMaxima:
+                # Filtrar por rango de fechas
+                filtros['fecha__range'] = (fechaMinima, fechaMaxima)
+            datos_asistencias = [] 
+            if filtros:
+                
+                asistencias = Asistencia.objects.filter(**filtros)
+                
+                for asistencia in asistencias:
+                    inscripcion=asistencia.inscripcion
+                    datos_inscripcion=Inscripcion.objects.get(id= inscripcion.id) 
+                    miembro= Miembro.objects.get(num_control=datos_inscripcion.miembro.num_control)
+                    datos_asistencias.append({
+                        'hora': asistencia.hora,
+                        'fecha': asistencia.fecha,
+                        'nombre':miembro.nombre,
+                        'paterno':miembro.paterno,
+                        'materno':miembro.materno,
+                        'clase':datos_inscripcion.clase,
+                        'modalidad':datos_inscripcion.modalidad
+                    })  
+            else:
+                fecha_hoy = datetime.now().date()
+                asistencias=Asistencia.objects.filter(fecha=fecha_hoy)
+                datos_asistencias = []
+                for asistencia in asistencias:
+                    inscripcion=asistencia.inscripcion
+                    datos_inscripcion=Inscripcion.objects.get(id= inscripcion.id) 
+                    miembro= Miembro.objects.get(num_control=datos_inscripcion.miembro.num_control)
+                    datos_asistencias.append({
+                        'hora': asistencia.hora,
+                        'fecha': asistencia.fecha,
+                        'nombre':miembro.nombre,
+                        'paterno':miembro.paterno,
+                        'materno':miembro.materno,
+                        'clase':datos_inscripcion.clase,
+                        'modalidad':datos_inscripcion.modalidad
+                    })
             return Response(data=datos_asistencias,status=HTTP_200_OK)
+            
         except Exception as e:
-            print(e)
-            return Response(data="Ocurrio un error",status=HTTP_400_BAD_REQUEST) 
+            print(f"Ocurrió un error: {e}")  # Para propósitos de depuración
+            return Response(data="Ocurrió un error", status=HTTP_400_BAD_REQUEST)
         
 class AsistenciasFiltro(APIView):
     def get(self,request):
@@ -306,7 +340,7 @@ class AsistenciasFiltro(APIView):
             anio = request.GET.get('anio')
             fechaMinima = request.GET.get('fecha_minima')
             fechaMaxima = request.GET.get('fecha_maxima') 
-            print(fechaMaxima)
+            print(mesMinimo)
             filtros = {} 
             # Filtro para mes (rango de meses)
             if mesMinimo and mesMaximo and anio:
@@ -319,6 +353,7 @@ class AsistenciasFiltro(APIView):
                 # Filtrar por rango de fechas
                 filtros['fecha__range'] = (fechaMinima, fechaMaxima)
             datos_asistencias = []
+            print(filtros)
             if filtros:
                 
                 asistencias = Asistencia.objects.filter(**filtros)
@@ -337,7 +372,24 @@ class AsistenciasFiltro(APIView):
                         'clase':datos_inscripcion.clase,
                         'modalidad':datos_inscripcion.modalidad
                     })  
-                
+            else:
+                fecha_hoy = datetime.now().date()
+                asistencias=Asistencia.objects.filter(fecha=fecha_hoy)
+                datos_asistencias = []
+                for asistencia in asistencias:
+                    inscripcion=asistencia.inscripcion
+                    datos_inscripcion=Inscripcion.objects.get(id= inscripcion.id)
+                    print(inscripcion.miembro)
+                    miembro= Miembro.objects.get(num_control=datos_inscripcion.miembro.num_control)
+                    datos_asistencias.append({
+                        'hora': asistencia.hora,
+                        'fecha': asistencia.fecha,
+                        'nombre':miembro.nombre,
+                        'paterno':miembro.paterno,
+                        'materno':miembro.materno,
+                        'clase':datos_inscripcion.clase,
+                        'modalidad':datos_inscripcion.modalidad
+                    })
             return Response(data=datos_asistencias,status=HTTP_200_OK)
             
         except Exception as e:

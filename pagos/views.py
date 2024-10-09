@@ -122,40 +122,76 @@ class RegistrarPago(APIView):
 class PagosPendientes(APIView):
     def get(self,request):
         try:
-            # Obtener la fecha actual
-            hoy = timezone.now()
-            mes_actual = hoy.month  # Mes actual
-            anio_actual = hoy.year  # Año actual
+            mesMinimo = request.GET.get('mes_minimo')
+            mesMaximo = request.GET.get('mes_maximo')
+            anio = request.GET.get('anio')
+            fechaMinima = request.GET.get('fecha_minima')
+            fechaMaxima = request.GET.get('fecha_maxima')
+            estado=request.GET.get('estado')
+            clase=request.GET.get('clase')
+            filtros = {}
+            datos=[]
+            # Filtro para mes (rango de meses)
+            if mesMinimo and mesMaximo and anio:
+                # Filtrar por rango de meses dentro de un año específico
+                filtros['proximo_pago__month__range'] = (mesMinimo, mesMaximo)
+                filtros['proximo_pago__year'] = anio  # También filtramos por año específico
 
-            # Filtrar pagos pendientes donde el mes de pago_proximo sea igual al mes actual
-            pagos = Pagos.objects.filter(
-                estado='pendiente',
-                proximo_pago__month=mes_actual,
-                proximo_pago__year=anio_actual# Filtrar por mes
-            )
+            # Filtro para rango de fechas
+            if fechaMinima and fechaMaxima:
+                # Filtrar por rango de fechas
+                filtros['fecha_pago_realizado__range'] = (fechaMinima, fechaMaxima)
 
-            # Si necesitas devolver los datos en un formato específico
-            datos_pagos = []  # Crear una lista para almacenar los datos a devolver
-            for pago in pagos:
-                miembro=pago.miembro 
-                print(miembro.celular)
-                inscripcion=pago.inscripcion 
-                datos_pagos.append({
-                    'id': pago.id,
-                    'nombre': miembro.nombre  ,
-                    'paterno':miembro.paterno,
-                    'materno':miembro.materno,
-                    'telefono':miembro.celular,
-                    'monto': pago.monto,
-                    'disciplina':inscripcion.clase,
-                    'proximo_pago': pago.proximo_pago,
-                    'estado': pago.estado,
-                    # Agrega otros campos según necesites
-                })
-            print(datos_pagos)
+            # Otros filtros opcionales
+            if estado:
+                filtros['estado'] = estado  # Filtrar por estado
+            if clase:
+                filtros['clase'] = clase  
+            if filtros:
+                pagos = Pagos.objects.filter(**filtros)
+                for pago in pagos:
+                    miembro=pago.miembro
+                    datos.append({
+                        'nombre':miembro.nombre,
+                        'paterno':miembro.paterno,
+                        'materno':miembro.materno,
+                        'estado':pago.estado,
+                        'fecha_pagado':pago.fecha_pago_realizado,
+                        'proximo_pago':pago.proximo_pago,
+                        'monto':pago.monto
+                    })  
+            else:
+                hoy = datetime.now()
+                print(hoy)
+                mes_actual = hoy.month  # Mes actual
+                anio_actual = hoy.year  # Año actual
 
-            return Response(data=datos_pagos, status=HTTP_200_OK)
+                # Filtrar pagos pendientes donde el mes de pago_proximo sea igual al mes actual
+                pagos = Pagos.objects.filter(
+                    estado='pendiente',
+                    proximo_pago__month=mes_actual,
+                    proximo_pago__year=anio_actual# Filtrar por mes
+                )
 
+                # Si necesitas devolver los datos en un formato específico
+                datos_pagos = []  # Crear una lista para almacenar los datos a devolver
+                for pago in pagos:
+                    miembro=pago.miembro  
+                    inscripcion=pago.inscripcion 
+                    datos.append({
+                        'id': pago.id,
+                        'nombre': miembro.nombre  ,
+                        'paterno':miembro.paterno,
+                        'materno':miembro.materno,
+                        'telefono':miembro.celular,
+                        'monto': pago.monto,
+                        'disciplina':inscripcion.clase,
+                        'proximo_pago': pago.proximo_pago,
+                        'estado': pago.estado,
+                        # Agrega otros campos según necesites
+                    })
+            return Response(data=datos,status=HTTP_200_OK)
+            
         except Exception as e:
             print(f"Ocurrió un error: {e}")  # Para propósitos de depuración
             return Response(data="Ocurrió un error", status=HTTP_400_BAD_REQUEST)
@@ -182,13 +218,14 @@ class PagosFiltro(APIView):
             # Filtro para rango de fechas
             if fechaMinima and fechaMaxima:
                 # Filtrar por rango de fechas
-                filtros['fecha_pago__range'] = (fechaMinima, fechaMaxima)
+                filtros['fecha_pago_realizado__range'] = (fechaMinima, fechaMaxima)
 
             # Otros filtros opcionales
             if estado:
                 filtros['estado'] = estado  # Filtrar por estado
             if clase:
                 filtros['clase'] = clase  # Filtrar por clase
+            print(filtros)
             if filtros:
                 pagos = Pagos.objects.filter(**filtros)
                 for pago in pagos:
@@ -202,6 +239,37 @@ class PagosFiltro(APIView):
                         'proximo_pago':pago.proximo_pago,
                         'monto':pago.monto
                     })  
+            else:
+                hoy = datetime.now()
+                print(hoy)
+                mes_actual = hoy.month  # Mes actual
+                anio_actual = hoy.year  # Año actual
+
+                # Filtrar pagos pendientes donde el mes de pago_proximo sea igual al mes actual
+                pagos = Pagos.objects.filter(
+                    estado='pendiente',
+                    proximo_pago__month=mes_actual,
+                    proximo_pago__year=anio_actual# Filtrar por mes
+                )
+
+                # Si necesitas devolver los datos en un formato específico
+                datos_pagos = []  # Crear una lista para almacenar los datos a devolver
+                for pago in pagos:
+                    miembro=pago.miembro 
+                    print(miembro.celular)
+                    inscripcion=pago.inscripcion 
+                    datos.append({
+                        'id': pago.id,
+                        'nombre': miembro.nombre  ,
+                        'paterno':miembro.paterno,
+                        'materno':miembro.materno,
+                        'telefono':miembro.celular,
+                        'monto': pago.monto,
+                        'disciplina':inscripcion.clase,
+                        'proximo_pago': pago.proximo_pago,
+                        'estado': pago.estado,
+                        # Agrega otros campos según necesites
+                    })
             return Response(data=datos,status=HTTP_200_OK)
             
         except Exception as e:
