@@ -332,6 +332,7 @@ class AsistenciaDiaActual(APIView):
             print(f"Ocurrió un error: {e}")  # Para propósitos de depuración
             return Response(data="Ocurrió un error", status=HTTP_400_BAD_REQUEST)
         
+"""        
 class AsistenciasFiltro(APIView):
     def get(self,request):
         try:
@@ -395,7 +396,7 @@ class AsistenciasFiltro(APIView):
         except Exception as e:
             print(f"Ocurrió un error: {e}")  # Para propósitos de depuración
             return Response(data="Ocurrió un error", status=HTTP_400_BAD_REQUEST)
-
+"""
 
 
 

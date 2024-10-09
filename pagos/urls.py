@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import PagosPendientesUsuario,RegistrarPago,PagosPendientes,PagosFiltro
+from .views import PagosPendientesUsuario,RegistrarPago,PagosPendientes 
 
 urlpatterns = [
     path('pendiente_usuario/', PagosPendientesUsuario.as_view(), name='pagos_pendientes_usuarios'),

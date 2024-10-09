@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import Clases,RegistrarAsistencia,CambioModalidad,RegistrarInscripcion,NotificarPagos,InscripcionesMiembro,BajaInscripcion,AsistenciaDiaActual,AsistenciasFiltro
+from .views import Clases,RegistrarAsistencia,CambioModalidad,RegistrarInscripcion,NotificarPagos,InscripcionesMiembro,BajaInscripcion,AsistenciaDiaActual
 
 urlpatterns = [
     path('clases/', Clases.as_view(), name='clases'),

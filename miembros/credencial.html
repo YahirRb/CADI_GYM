@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subir Foto de Credencial</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <h1>Subir Foto de Credencial</h1>
+    <form id="uploadForm">
+        <label for="user_id">ID de Usuario:</label>
+        <input type="text" id="user_id" name="user_id" required><br><br>
+        
+        <label for="foto">Seleccionar Foto:</label>
+        <input type="file" id="foto" name="foto" accept="image/*" required><br><br>
+
+        <button type="submit">Subir Foto</button>
+    </form>
+
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', function (event) {
+            event.preventDefault(); // Evita que el formulario se envíe de manera tradicional
+
+            // Crea un nuevo objeto FormData
+            var formData = new FormData();
+            formData.append('user_id', document.getElementById('user_id').value);
+            formData.append('foto', document.getElementById('foto').files[0]);
+
+            // Enviar la solicitud POST a la API usando Axios
+            axios.post('http://127.0.0.1:8000/miembro/foto_credencial/', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            })
+            .then(function (response) {
+                console.log(response.data);
+                document.getElementById('result').innerHTML = '<p>' + response.data.message + '</p><p>Ruta de la imagen: ' + response.data.path + '</p>';
+            })
+            .catch(function (error) {
+                console.error(error);
+                if (error.response) {
+                    document.getElementById('result').innerHTML = '<p>Error: ' + error.response.data.error + '</p>';
+                } else {
+                    document.getElementById('result').innerHTML = '<p>Error al subir la imagen.</p>';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

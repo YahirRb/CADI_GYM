@@ -15,9 +15,12 @@ from django.contrib.auth import get_user_model
 import jwt
 from jwt import ExpiredSignatureError, InvalidTokenError
 from cadi_gym.settings import SECRET_KEY
-from cadi_gym.utils import enviar_correo
-
+from cadi_gym.utils import enviar_correo 
 from cadi_gym.utils import supabase
+import environ
+
+env = environ.Env()
+environ.Env.read_env()
 
 User = get_user_model()
 
@@ -25,8 +28,8 @@ class RegistroMiembro(APIView):
     def post(self, request):
         try:
             # Obtener datos del request
-            #foto = request.FILES.get('foto')
-            
+            foto = request.FILES.get('foto')
+            print(foto)
             datosMiembro = request.data.get('datos_miembro')
             historialMedico = request.data.get('historial_medico')
             historialDeportivo = request.data.get('historial_deportivo') 
@@ -40,19 +43,23 @@ class RegistroMiembro(APIView):
             password= curp[:10]
             print(password)
             serializerMiembro = MiembroSerializer(data=datosMiembro)
-            #if not foto:
-            #    return Response({"error": "No se ha proporcionado ninguna imagen."}, status= HTTP_400_BAD_REQUEST)
+            if not foto:
+                return Response({"error": "No se ha proporcionado ninguna imagen."}, status= HTTP_400_BAD_REQUEST)
             if serializerMiembro.is_valid():
                 
                 miembro = serializerMiembro.save()
                 num_control = miembro.num_control
+                
                 path_on_supastorage = f"images/{miembro.num_control}.png"
-                #res = supabase.storage.from_('cadi_gym').upload(
-                 #   path_on_supastorage,
-                  #  file=foto.read(),
-                   # file_options={"content-type": foto.content_type}
-                #)
+                print(path_on_supastorage)
+                res = supabase.storage.from_('cadi_gym').upload(
+                    path_on_supastorage,
+                    file=foto.read(),
+                    file_options={"content-type": foto.content_type}
+                )
+                print("guardó")
                 miembro.foto = path_on_supastorage
+                
                 miembro.save()
                 # Asignar ID de miembro a historiales
                 historialMedico['miembro'] = num_control
@@ -197,8 +204,6 @@ class DatosMiembro(APIView):
 class  FotoCredencial(APIView):
     def post(self, request): 
         user_id = request.data.get('user_id')
-        
-        print(user_id)
         foto = request.FILES.get('foto')
         if not foto:
             return Response({"error": "No se ha proporcionado ninguna imagen."}, status= HTTP_400_BAD_REQUEST)
@@ -314,16 +319,18 @@ class SuspenderMiembro(APIView):
 class EnlaceTemporal(APIView):
     def get(self,request):
         try:
+            
             correo=request.GET.get('correo')
             payload = {  
-                'exp': timezone.localtime(timezone.now()) + timedelta(minutes=5)  # Expiración de 5 minutos
+                'exp': timezone.localtime(timezone.now()) + timedelta(hours=12)  # Expiración de 12 horas
             } 
             token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+            
             enviar_correo(
                 destinatario=correo,
                 asunto='Enlace de registro',
-                mensaje=f"https://cadi-minatitlan.site/gym-users/add/{token}")
-             
+                mensaje=f"{env.str('URL_REGISTRO_TEMPORAL')}{token}")
+            
             return Response(data="Correo enviado",status=HTTP_200_OK)
         except ExpiredSignatureError:
                 # El token ha expirado
@@ -348,24 +355,40 @@ class RegistroTemporal(APIView):
 
             # Si es válido, almacénalo como utilizado
             TokenUtilizado.objects.create(token=token)
-            # Obtener datos del request
+            
+            #foto = request.FILES.get('foto')
+            
             datosMiembro = request.data.get('datos_miembro')
             historialMedico = request.data.get('historial_medico')
             historialDeportivo = request.data.get('historial_deportivo') 
-            datosInscripcion = request.data.get('datos_inscripcion')
+            datosInscripcion = request.data.get('datos_inscripcion') 
             fecha_str=datosMiembro['fecha']
+            print(fecha_str)
             fecha = datetime.strptime(fecha_str, '%Y-%m-%d')
             # Serializar el miembro
             curp= datosMiembro['curp']
+            
             password= curp[:10]
             print(password)
             serializerMiembro = MiembroSerializer(data=datosMiembro)
-
+            #if not foto:
+            #    return Response({"error": "No se ha proporcionado ninguna imagen."}, status= HTTP_400_BAD_REQUEST)
             if serializerMiembro.is_valid():
-                # Guardar el miembro
+                
                 miembro = serializerMiembro.save()
-                num_control = miembro.num_control  # Obtener el identificador del miembro
-
+                num_control = miembro.num_control
+                """
+                path_on_supastorage = f"images/{miembro.num_control}.png"
+                
+                res = supabase.storage.from_('cadi_gym').upload(
+                    path_on_supastorage,
+                    file=foto.read(),
+                    file_options={"content-type": foto.content_type}
+                )
+                
+                miembro.foto = path_on_supastorage
+                """
+                miembro.save()
                 # Asignar ID de miembro a historiales
                 historialMedico['miembro'] = num_control
                 historialDeportivo['miembro'] = num_control
@@ -454,7 +477,11 @@ class RegistroTemporal(APIView):
                         asunto='Recordatorio de pago',
                         mensaje="mensaje")
                     """
-                    return Response({"message": "Miembro registrado con éxito junto con historiales, inscripciones y pagos."}, status=HTTP_201_CREATED)
+                    usuario = {
+                        "correo": datosMiembro['correo'],
+                        "password": password
+                    }
+                    return Response(data=usuario, status=HTTP_201_CREATED)
                 else:
                     # Recopilar errores de validación
                     errors = {
