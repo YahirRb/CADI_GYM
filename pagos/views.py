@@ -189,22 +189,20 @@ class PagosFiltro(APIView):
                 filtros['estado'] = estado  # Filtrar por estado
             if clase:
                 filtros['clase'] = clase  # Filtrar por clase
-            print(filtros)
-            pagos = Pagos.objects.filter(**filtros)
-            for pago in pagos:
-                miembro=pago.miembro
-                datos.append({
-                    'nombre':miembro.nombre,
-                    'paterno':miembro.paterno,
-                    'materno':miembro.materno,
-                    'estado':pago.estado,
-                    'fecha_pagado':pago.fecha_pago_realizado,
-                    'proximo_pago':pago.proximo_pago,
-                    'monto':pago.monto
-                })
-            serializer=PagosSerializer(pagos, many=True)
-            print(datos)
-            return Response(data=datos)
+            if filtros:
+                pagos = Pagos.objects.filter(**filtros)
+                for pago in pagos:
+                    miembro=pago.miembro
+                    datos.append({
+                        'nombre':miembro.nombre,
+                        'paterno':miembro.paterno,
+                        'materno':miembro.materno,
+                        'estado':pago.estado,
+                        'fecha_pagado':pago.fecha_pago_realizado,
+                        'proximo_pago':pago.proximo_pago,
+                        'monto':pago.monto
+                    })  
+            return Response(data=datos,status=HTTP_200_OK)
             
         except Exception as e:
             print(f"Ocurrió un error: {e}")  # Para propósitos de depuración

@@ -318,26 +318,27 @@ class AsistenciasFiltro(APIView):
             if fechaMinima and fechaMaxima:
                 # Filtrar por rango de fechas
                 filtros['fecha__range'] = (fechaMinima, fechaMaxima)
- 
-            print(filtros)
-            asistencias = Asistencia.objects.filter(**filtros)
             datos_asistencias = []
-            for asistencia in asistencias:
-                inscripcion=asistencia.inscripcion
-                datos_inscripcion=Inscripcion.objects.get(id= inscripcion.id)
-                print(inscripcion.miembro)
-                miembro= Miembro.objects.get(num_control=datos_inscripcion.miembro.num_control)
-                datos_asistencias.append({
-                    'hora': asistencia.hora,
-                    'fecha': asistencia.fecha,
-                    'nombre':miembro.nombre,
-                    'paterno':miembro.paterno,
-                    'materno':miembro.materno,
-                    'clase':datos_inscripcion.clase,
-                    'modalidad':datos_inscripcion.modalidad
-                })  
+            if filtros:
                 
-            return Response(data=datos_asistencias)
+                asistencias = Asistencia.objects.filter(**filtros)
+                
+                for asistencia in asistencias:
+                    inscripcion=asistencia.inscripcion
+                    datos_inscripcion=Inscripcion.objects.get(id= inscripcion.id)
+                    print(inscripcion.miembro)
+                    miembro= Miembro.objects.get(num_control=datos_inscripcion.miembro.num_control)
+                    datos_asistencias.append({
+                        'hora': asistencia.hora,
+                        'fecha': asistencia.fecha,
+                        'nombre':miembro.nombre,
+                        'paterno':miembro.paterno,
+                        'materno':miembro.materno,
+                        'clase':datos_inscripcion.clase,
+                        'modalidad':datos_inscripcion.modalidad
+                    })  
+                
+            return Response(data=datos_asistencias,status=HTTP_200_OK)
             
         except Exception as e:
             print(f"Ocurrió un error: {e}")  # Para propósitos de depuración
