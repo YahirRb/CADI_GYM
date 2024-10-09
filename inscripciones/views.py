@@ -297,6 +297,51 @@ class AsistenciaDiaActual(APIView):
         except Exception as e:
             print(e)
             return Response(data="Ocurrio un error",status=HTTP_400_BAD_REQUEST) 
+        
+class AsistenciasFiltro(APIView):
+    def get(self,request):
+        try:
+            mesMinimo = request.GET.get('mes_minimo')
+            mesMaximo = request.GET.get('mes_maximo')
+            anio = request.GET.get('anio')
+            fechaMinima = request.GET.get('fecha_minima')
+            fechaMaxima = request.GET.get('fecha_maxima') 
+            print(fechaMaxima)
+            filtros = {} 
+            # Filtro para mes (rango de meses)
+            if mesMinimo and mesMaximo and anio:
+                # Filtrar por rango de meses dentro de un año específico
+                filtros['fecha__month__range'] = (mesMinimo, mesMaximo)
+                filtros['fecha__year'] = anio  # También filtramos por año específico
+
+            # Filtro para rango de fechas
+            if fechaMinima and fechaMaxima:
+                # Filtrar por rango de fechas
+                filtros['fecha__range'] = (fechaMinima, fechaMaxima)
+ 
+            print(filtros)
+            asistencias = Asistencia.objects.filter(**filtros)
+            datos_asistencias = []
+            for asistencia in asistencias:
+                inscripcion=asistencia.inscripcion
+                datos_inscripcion=Inscripcion.objects.get(id= inscripcion.id)
+                print(inscripcion.miembro)
+                miembro= Miembro.objects.get(num_control=datos_inscripcion.miembro.num_control)
+                datos_asistencias.append({
+                    'hora': asistencia.hora,
+                    'fecha': asistencia.fecha,
+                    'nombre':miembro.nombre,
+                    'paterno':miembro.paterno,
+                    'materno':miembro.materno,
+                    'clase':datos_inscripcion.clase,
+                    'modalidad':datos_inscripcion.modalidad
+                })  
+                
+            return Response(data=datos_asistencias)
+            
+        except Exception as e:
+            print(f"Ocurrió un error: {e}")  # Para propósitos de depuración
+            return Response(data="Ocurrió un error", status=HTTP_400_BAD_REQUEST)
 
 
 
