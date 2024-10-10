@@ -36,11 +36,13 @@ class RegistroMiembro(APIView):
             historialMedico = request.data.get('historial_medico')
             historialDeportivo = request.data.get('historial_deportivo') 
             datosInscripcion = request.data.get('datos_inscripcion') 
-            fecha_str=datosMiembro['fecha']
+            
             print(type(datosMiembro))
             print(type(historialMedico))
             print(type(historialDeportivo))
             print(type(datosInscripcion))
+            fecha_str=datosMiembro['fecha']
+      
             fecha = datetime.strptime(fecha_str, '%Y-%m-%d')
             # Serializar el miembro
             curp= datosMiembro['curp']
