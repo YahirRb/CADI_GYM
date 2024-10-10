@@ -220,12 +220,12 @@ class NotificarPagos(APIView):
                 mensajes.append(mensaje)
                 print(mensajes)
                 enviar_notificacion_a_alumno(miembro.num_control,mensaje)
-                
-                enviar_correo(
-                    destinatario=miembro.correo,
-                    asunto='Recordatorio de pago',
-                    mensaje=mensaje)
-                    
+                if miembro.correo:
+                    enviar_correo(
+                        destinatario=miembro.correo,
+                        asunto='Recordatorio de pago',
+                        mensaje=mensaje)
+                        
             
             # Devolver los mensajes generados
             return Response(mensajes,status=HTTP_200_OK)
