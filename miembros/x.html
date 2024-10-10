@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subir Foto de Credencial</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            max-width: 400px;
+        }
+        input[type="text"], input[type="file"] {
+            width: 100%;
+            padding: 8px;
+            margin: 8px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 15px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #response-container {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            display: none; /* Ocultar inicialmente */
+        }
+    </style>
+</head>
+<body>
+    <h1>Subir Foto de Credencial</h1>
+    
+    <form id="upload-form">
+        <label for="user_id">ID de Usuario:</label>
+        <input type="text" id="user_id" name="user_id" required>
+
+        <label for="foto">Selecciona una imagen:</label>
+        <input type="file" id="foto" name="foto" accept="image/*" required>
+
+        <button type="submit">Subir Imagen</button>
+    </form>
+
+    <div id="response-container">
+        <h2>Respuesta del Servidor:</h2>
+        <pre id="response-text"></pre>
+    </div>
+
+    <script>
+        document.getElementById('upload-form').onsubmit = async function(event) {
+            event.preventDefault(); // Evita el envío del formulario de manera tradicional
+            
+            const formData = new FormData(this); // Crea un objeto FormData
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/miembro/foto_credencial/', { // Asegúrate de cambiar la ruta a la de tu API
+                    method: 'POST',
+                    body: formData,
+                });
+
+                const data = await response.json();
+                const responseContainer = document.getElementById('response-container');
+                const responseText = document.getElementById('response-text');
+                
+                if (response.ok) {
+                    responseText.textContent = JSON.stringify(data, null, 2); // Muestra la respuesta en formato JSON
+                } else {
+                    responseText.textContent = `Error: ${data.error || 'No se pudo subir la imagen.'}`;
+                }
+
+                responseContainer.style.display = 'block'; // Muestra el contenedor de respuesta
+            } catch (error) {
+                console.error('Error al subir la imagen:', error);
+                document.getElementById('response-text').textContent = 'Error al realizar la petición.';
+                document.getElementById('response-container').style.display = 'block'; // Muestra el contenedor de respuesta
+            }
+        };
+    </script>
+</body>
+</html>

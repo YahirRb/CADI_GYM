@@ -1,0 +1,162 @@
+[33mcommit 7db264d22db18f7d5dd3be45cf6f69e2d6c50a5f[m[33m ([m[1;36mHEAD[m[33m)[m
+Author: Yahir <yahirrb343@gmail.com>
+Date:   Wed Oct 9 18:19:40 2024 -0600
+
+    Firebase
+
+[33mcommit 1851033ad8531597a2fddf10d07083789ac6db93[m[33m ([m[1;31morigin/backend[m[33m)[m
+Author: Yahir <yahirrb343@gmail.com>
+Date:   Wed Oct 9 12:42:45 2024 -0600
+
+    Campo foto en registro usuario
+
+[33mcommit 2553689e6f880a9267e4d97317f54fc94e17520b[m
+Author: Yahir <yahirrb343@gmail.com>
+Date:   Wed Oct 9 01:23:47 2024 -0600
+
+    Modificacion api asistencias y pagos
+
+[33mcommit b128296bf9ba30fb929f091f186078fdb46f50eb[m
+Author: Yahir <yahirrb343@gmail.com>
+Date:   Wed Oct 9 00:56:31 2024 -0600
+
+    Modificacion api filtro asistencias
+
+[33mcommit 7d814eb5a9682145ad79487231238309a0fe97e9[m
+Author: Yahir <yahirrb343@gmail.com>
+Date:   Wed Oct 9 00:45:42 2024 -0600
+
+    Api filtro asistencias
+
+[33mcommit 616829e5d43f500da902fec2e1732c8278bc5b0b[m
+Author: Yahir <yahirrb343@gmail.com>
+Date:   Tue Oct 8 22:52:01 2024 -0600
+
+    Api listar asistencias
+
+[33mcommit 43552bb596c10e990f696f0f3af7dca3e3bca100[m
+Author: Yahir <yahirrb343@gmail.com>
+Date:   Tue Oct 8 16:14:38 2024 -0600
+
+    Api datos por usuario
+
+[33mcommit 03c3aa761076a0467cbf55e44802834145aa8fb6[m[33m ([m[1;31morigin/main[m[33m, [m[1;32mmain[m[33m)[m
+Author: Yahir <yahirrb343@gmail.com>
+Date:   Tue Oct 8 14:05:27 2024 -0600
+
+    Prueba3
+
+[33mcommit 40b86bdf94e8dddcfc9263141ebfeda662c2b034[m
+Author: Yahir <yahirrb343@gmail.com>
+Date:   Tue Oct 8 14:03:55 2024 -0600
+
+    Prueba2
+
+[33mcommit 6577b06454fbc5aa7b05cad68a27b120be1ab35a[m
+Merge: 4579df1 d5aeb93
+Author: Yahir <yahirrb343@gmail.com>
+Date:   Tue Oct 8 13:50:37 2024 -0600
+
+    Prueba
+
+[33mcommit 4579df193d8d48e81c7cda9ebd487986a5628f05[m
+Author: Yahir <yahirrb343@gmail.com>
+Date:   Tue Oct 8 13:34:31 2024 -0600
+
+    Prueba 2 railway
+
+[33mcommit 0e9855bae820ccb954bc2b0da2fb8aac4e92cb66[m
+Author: Yahir <yahirrb343@gmail.com>
+Date:   Tue Oct 8 13:27:10 2024 -0600
+
+    Prueba 1 railway
+
+[33mcommit 9a60316220bb364f095e473655e73014123f8b60[m
+Author: Yahir <yahirrb343@gmail.com>
+Date:   Mon Oct 7 01:46:54 2024 -0600
+
+    Api baja inscripcion
+
+[33mcommit 3c288e1be3f57a4ffc781b3c984c6b1032ecbc47[m
+Author: Yahir <yahirrb343@gmail.com>
+Date:   Sun Oct 6 23:35:22 2024 -0600
+
+    errores
+
+[33mcommit c326bfb6a7a756f945336ee0c02d310cfe0ce4d2[m
+Author: Yahir <yahirrb343@gmail.com>
+Date:   Sun Oct 6 23:24:41 2024 -0600
+
+    Configuracion .env
+
+[33mcommit 726ae20368428f18fcd9b54994f39b9677085707[m
+Author: Yahir <yahirrb343@gmail.com>
+Date:   Sun Oct 6 17:48:40 2024 -0600
+
+    Edicion registro inscripcion
+
+[33mcommit 98c05b34c86019c9b9bad2989b282d8f02f9bd89[m
+Author: Yahir <yahirrb343@gmail.com>
+Date:   Sun Oct 6 16:27:42 2024 -0600
+
+    Creacion de notificaciones
+
+[33mcommit d5530203732dd7148aa4c66699388e73ede22d78[m
+Author: Yahir <yahirrb343@gmail.com>
+Date:   Sat Oct 5 14:09:34 2024 -0600
+
+    Datos miembros activos
+
+[33mcommit 988010d0984ced1ee724be4104920148e487aab3[m
+Author: Yahir <yahirrb343@gmail.com>
+Date:   Sat Oct 5 03:17:13 2024 -0600
+
+    Modificacion modelo Miembro(Campos paterno, materno)
+
+[33mcommit 5c658f3efbed38b2e23f250abd84180d6104ae7c[m
+Author: Yahir <yahirrb343@gmail.com>
+Date:   Fri Oct 4 21:58:04 2024 -0600
+
+    Api pagos
+
+[33mcommit c37ae0ff2c685e29004ed96f430d93094032cfb4[m
+Author: Yahir <yahirrb343@gmail.com>
+Date:   Thu Oct 3 12:07:23 2024 -0600
+
+    Modificacion datos pago
+
+[33mcommit 882378a616420c71d0c7ffb25556ffe0bdb37601[m
+Author: Yahir <yahirrb343@gmail.com>
+Date:   Thu Oct 3 10:51:15 2024 -0600
+
+    Datos credencial
+
+[33mcommit 183a63078bc81cbb2dda3c07f5b49308456a9b9c[m
+Author: Yahir <yahirrb343@gmail.com>
+Date:   Thu Oct 3 02:04:21 2024 -0600
+
+    Api recordatorio de pago
+
+[33mcommit b63fcf079f01b8d640630c1911cdd45d17742e1d[m
+Author: Yahir <yahirrb343@gmail.com>
+Date:   Wed Oct 2 03:41:41 2024 -0600
+
+    Api credencial y asistencia
+
+[33mcommit f88c04a8ea6d74b61f841a506421f61544c4bb3a[m
+Author: Yahir <yahirrb343@gmail.com>
+Date:   Tue Oct 1 23:06:06 2024 -0600
+
+    Instalacion gunicorn
+
+[33mcommit df40053d1a0005963244d49ef8800698b0f11e9f[m[33m ([m[1;32mmaster[m[33m)[m
+Author: Yahir <yahirrb343@gmail.com>
+Date:   Tue Oct 1 22:50:26 2024 -0600
+
+    Prueba despliegue
+
+[33mcommit d5aeb93115e02941680d8ba8a7e232b1123abdde[m
+Author: YahirRb <100803229+YahirRb@users.noreply.github.com>
+Date:   Sat Sep 28 19:34:13 2024 -0600
+
+    Initial commit

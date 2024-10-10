@@ -18,6 +18,8 @@ from cadi_gym.settings import SECRET_KEY
 from cadi_gym.utils import enviar_correo 
 from cadi_gym.utils import supabase
 import environ
+#from firebase_admin import storage
+#from cadi_gym.firebase_config import bucket
 
 env = environ.Env()
 environ.Env.read_env()
@@ -43,24 +45,22 @@ class RegistroMiembro(APIView):
             password= curp[:10]
             print(password)
             serializerMiembro = MiembroSerializer(data=datosMiembro)
-            if not foto:
-                return Response({"error": "No se ha proporcionado ninguna imagen."}, status= HTTP_400_BAD_REQUEST)
             if serializerMiembro.is_valid():
                 
                 miembro = serializerMiembro.save()
                 num_control = miembro.num_control
-                
-                path_on_supastorage = f"images/{miembro.num_control}.png"
-                print(path_on_supastorage)
-                res = supabase.storage.from_('cadi_gym').upload(
-                    path_on_supastorage,
-                    file=foto.read(),
-                    file_options={"content-type": foto.content_type}
-                )
-                print("guardó")
-                miembro.foto = path_on_supastorage
-                
-                miembro.save()
+                if foto:
+                    path_on_supastorage = f"images/{miembro.num_control}.png"
+                    print(path_on_supastorage)
+                    res = supabase.storage.from_('cadi_gym').upload(
+                        path_on_supastorage,
+                        file=foto.read(),
+                        file_options={"content-type": foto.content_type}
+                    )
+                    print("guardó")
+                    miembro.foto = path_on_supastorage
+                    
+                    miembro.save()
                 # Asignar ID de miembro a historiales
                 historialMedico['miembro'] = num_control
                 historialDeportivo['miembro'] = num_control
@@ -167,7 +167,7 @@ class RegistroMiembro(APIView):
 
         except Exception as e:
             print(f"Error: {e}")  # Para propósitos de depuración
-            return Response({"error": "Ocurrió un error durante el registro."}, status=HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"error": f"Ocurrió un error durante el registro. {e}"}, status=HTTP_500_INTERNAL_SERVER_ERROR)
 
 class DatosMiembro(APIView):
     def get(self,request):
@@ -200,7 +200,40 @@ class DatosMiembro(APIView):
         except Exception as e:
             print(e)
             return Response({"error": "Ocurrió un error durante el registro."}, status=HTTP_500_INTERNAL_SERVER_ERROR)
-        
+"""     
+class  FotoCredencial(APIView):
+    def post(self, request): 
+        try:
+            user_id = request.data.get('user_id')
+            foto = request.FILES.get('foto')
+            if not foto:
+                return Response({"error": "No se ha proporcionado ninguna imagen."}, status= HTTP_400_BAD_REQUEST)
+            miembro = Miembro.objects.get(num_control=user_id)
+            # Define la ruta donde se almacenará la imagen en Supabase
+            blob_name = f'images/{user_id}.png'  # Puedes ajustar la ruta según sea necesario
+
+            # Crea el blob y sube el archivo
+            blob = bucket.blob(blob_name)
+            blob.upload_from_file(foto)
+
+            # Obtiene la URL del archivo subido
+            blob.make_public()
+            image_url = blob.public_url
+            print(image_url)
+
+             
+            # Actualiza el modelo miembro para guardar la ruta de la imagen
+              # Asegúrate de que el CURP existe en la base de datos
+            miembro.foto = blob_name  # Guarda la ruta de la imagen en el campo 'foto'
+            miembro.save()  # Guarda los cambios en la base de datos
+
+            return Response({"message": f"Imagen '{foto.name}' subida exitosamente!", "path": blob_name}, status= HTTP_201_CREATED)
+
+        except Exception as e:
+            # Manejo de errores si la subida falla
+            return Response({"error": str(e)}, status= HTTP_400_BAD_REQUEST)
+""" 
+
 class  FotoCredencial(APIView):
     def post(self, request): 
         user_id = request.data.get('user_id')
@@ -230,7 +263,6 @@ class  FotoCredencial(APIView):
         except Exception as e:
             # Manejo de errores si la subida falla
             return Response({"error": str(e)}, status= HTTP_400_BAD_REQUEST)
-
 class RegistroVisitante(APIView):
     def post(self,request):
         try:
@@ -597,3 +629,28 @@ class DatosUsuario(APIView):
             print(e)
             return Response(data="Ocurrio un error", status=HTTP_400_BAD_REQUEST)
     
+class x(APIView):
+    def post(self, request):
+        try:
+            # Obtiene el archivo de la petición
+            file = request.FILES.get('image')  # Asegúrate de que el campo se llame 'image'
+
+            if not file:
+                return Response({"error": "No se recibió ningún archivo."}, status=HTTP_400_BAD_REQUEST)
+
+            # Define el nombre del blob (archivo en el bucket)
+            blob_name = f'images/{2}'  # Puedes ajustar la ruta según sea necesario
+
+            # Crea el blob y sube el archivo
+            blob = bucket.blob(blob_name)
+            blob.upload_from_file(file)
+
+            # Obtiene la URL del archivo subido
+            blob.make_public()
+            image_url = blob.public_url
+            print(image_url)
+            return Response({"message": "Imagen subida exitosamente", "url": image_url}, status=HTTP_201_CREATED)
+
+        except Exception as e:
+            print(f"Error al subir la imagen: {e}")
+            return Response({"error": "Ocurrió un error al subir la imagen"}, status=HTTP_500_INTERNAL_SERVER_ERROR)
