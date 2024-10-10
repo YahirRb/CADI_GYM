@@ -20,7 +20,7 @@ class NotificationConsumer(WebsocketConsumer):
         # Enviar un mensaje de bienvenida
         self.send(text_data=json.dumps({
             'type': 'connection_established',
-            'message': 'Te has conectado al canal de notificaciones.'
+            'message': 'Bienvenido al sistema CADI.'
         }))
 
     def disconnect(self, close_code):
