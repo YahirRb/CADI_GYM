@@ -30,8 +30,7 @@ class RegistroMiembro(APIView):
     def post(self, request):
         try:
             # Obtener datos del request
-            foto = request.FILES.get('foto')
-            print(foto)
+            
             datosMiembro = request.data.get('datos_miembro')
             historialMedico = request.data.get('historial_medico')
             historialDeportivo = request.data.get('historial_deportivo') 
@@ -54,18 +53,7 @@ class RegistroMiembro(APIView):
                 
                 miembro = serializerMiembro.save()
                 num_control = miembro.num_control
-                if foto:
-                    path_on_supastorage = f"images/{miembro.num_control}.png"
-                    print(path_on_supastorage)
-                    res = supabase.storage.from_('cadi_gym').upload(
-                        path_on_supastorage,
-                        file=foto.read(),
-                        file_options={"content-type": foto.content_type}
-                    )
-                    print("guardó")
-                    miembro.foto = path_on_supastorage
-                    
-                    miembro.save()
+                
                 # Asignar ID de miembro a historiales
                 historialMedico['miembro'] = num_control
                 historialDeportivo['miembro'] = num_control
