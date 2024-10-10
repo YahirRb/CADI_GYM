@@ -144,7 +144,8 @@ class RegistroMiembro(APIView):
                     """
                     usuario = {
                         "correo": datosMiembro['correo'],
-                        "password": password
+                        "password": password,
+                        "num_control": num_control
                     }
                     return Response(data=usuario, status=HTTP_201_CREATED)
                 else:
