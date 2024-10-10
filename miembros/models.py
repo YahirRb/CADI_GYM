@@ -16,12 +16,12 @@ class Miembro(models.Model):
     edad = models.IntegerField()
     tipo_sangre = models.CharField(max_length=3, blank=True, null=True) 
     facebook = models.TextField(blank=True, null=True)  # Opcional
-    correo = models.EmailField(unique=True)  # Campo de correo único
+    correo = models.EmailField(blank=True, null=True)  # Campo de correo único
     curp = models.CharField(max_length=18, unique=True)  # CURP única
     nss = models.CharField(max_length=11, unique=True,blank=True, null=True)  # Número de seguridad social único
     dependencia = models.CharField(max_length=100, blank=True, null=True)
     telefono_fijo = models.CharField(max_length=15, blank=True, null=True)
-    celular = models.CharField(max_length=15)
+    celular = models.CharField(max_length=15,blank=True, null=True)
     estado_civil=models.CharField(max_length=15, blank=True, null=True)
     hijos = models.IntegerField(blank=True, null=True)  # Permitir nulos
     edades = models.CharField(max_length=100, blank=True, null=True)  # Permitir nulos
@@ -43,7 +43,7 @@ class Miembro(models.Model):
             User = get_user_model()
             rol, created = Group.objects.get_or_create(name='miembro')
             user, created = User.objects.get_or_create(
-                username=self.correo,
+                username=password_temporal,
                 defaults={
                     'email': self.correo,
                     'first_name':self.nombre,

@@ -143,7 +143,7 @@ class RegistroMiembro(APIView):
                         mensaje="mensaje")
                     """
                     usuario = {
-                        "correo": datosMiembro['correo'],
+                        "correo": password,
                         "password": password,
                         "num_control": num_control,
                         "inscripciones":inscripciones
