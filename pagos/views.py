@@ -122,6 +122,7 @@ class RegistrarPago(APIView):
 class PagosPendientes(APIView):
     def get(self,request):
         try:
+            fecha_actual = datetime.now().date()
             mesMinimo = request.GET.get('mes_minimo')
             mesMaximo = request.GET.get('mes_maximo')
             anio = request.GET.get('anio')
@@ -140,7 +141,7 @@ class PagosPendientes(APIView):
             # Filtro para rango de fechas
             if fechaMinima and fechaMaxima:
                 # Filtrar por rango de fechas
-                filtros['fecha_pago_realizado__range'] = (fechaMinima, fechaMaxima)
+                filtros['proximo_pago__range'] = (fechaMinima, fechaMaxima)
 
             # Otros filtros opcionales
             if estado:
@@ -150,22 +151,41 @@ class PagosPendientes(APIView):
             if filtros:
                 pagos = Pagos.objects.filter(**filtros)
                 for pago in pagos:
-                    miembro=pago.miembro
-                    datos.append({
-                        'nombre':miembro.nombre,
+                    miembro=pago.miembro  
+                    inscripcion=pago.inscripcion 
+                    pago_info={
+                        'id': pago.id,
+                        'nombre': miembro.nombre  ,
                         'paterno':miembro.paterno,
                         'materno':miembro.materno,
-                        'estado':pago.estado,
-                        'fecha_pagado':pago.fecha_pago_realizado,
-                        'proximo_pago':pago.proximo_pago,
-                        'monto':pago.monto
-                    })  
+                        'telefono':miembro.celular,
+                        'monto': pago.monto,
+                        'disciplina':inscripcion.clase,
+                        'proximo_pago': pago.proximo_pago,
+                        'estado': pago.estado,
+                        # Agrega otros campos según necesites
+                    }
+                    if inscripcion.modalidad == 'Mes' and pago.proximo_pago >= fecha_actual:
+                        pago_info["monto"] = "500.00"
+                    
+                    elif inscripcion.modalidad == 'Mes (de 5 a 6 años)' and pago.proximo_pago >= fecha_actual:
+                            print("inscripcion niño")
+                            pago_info["monto"] = "680.00"
+                        
+                    elif inscripcion.modalidad == 'Mes (7 años en adelante)' and pago.proximo_pago >= fecha_actual:
+                            print("inscripcion adulto")
+                            pago_info["monto"] = "760.00"
+                        
+                    elif pago.proximo_pago < fecha_actual:
+                            pago_info["monto"] = str(float(pago.monto) + 50)  # Actualiza el monto
+                    else:
+                            pago_info["monto"] = str(pago.monto)  # Monto original si no se aplica ninguna condición
+                    datos.append(pago_info)
             else:
-                hoy = datetime.now()
-                print(hoy)
-                mes_actual = hoy.month  # Mes actual
-                anio_actual = hoy.year  # Año actual
-
+                
+                mes_actual = fecha_actual.month  # Mes actual
+                anio_actual = fecha_actual.year  # Año actual
+                print(mes_actual)
                 # Filtrar pagos pendientes donde el mes de pago_proximo sea igual al mes actual
                 pagos = Pagos.objects.filter(
                     estado='pendiente',
@@ -178,7 +198,7 @@ class PagosPendientes(APIView):
                 for pago in pagos:
                     miembro=pago.miembro  
                     inscripcion=pago.inscripcion 
-                    datos.append({
+                    pago_info={
                         'id': pago.id,
                         'nombre': miembro.nombre  ,
                         'paterno':miembro.paterno,
@@ -189,7 +209,23 @@ class PagosPendientes(APIView):
                         'proximo_pago': pago.proximo_pago,
                         'estado': pago.estado,
                         # Agrega otros campos según necesites
-                    })
+                    }
+                    if inscripcion.modalidad == 'Mes' and pago.proximo_pago >= fecha_actual:
+                        pago_info["monto"] = "500.00"
+                    
+                    elif inscripcion.modalidad == 'Mes (de 5 a 6 años)' and pago.proximo_pago >= fecha_actual:
+                            print("inscripcion niño")
+                            pago_info["monto"] = "680.00"
+                        
+                    elif inscripcion.modalidad == 'Mes (7 años en adelante)' and pago.proximo_pago >= fecha_actual:
+                            print("inscripcion adulto")
+                            pago_info["monto"] = "760.00"
+                        
+                    elif pago.proximo_pago < fecha_actual:
+                            pago_info["monto"] = str(float(pago.monto) + 50)  # Actualiza el monto
+                    else:
+                            pago_info["monto"] = str(pago.monto)  # Monto original si no se aplica ninguna condición
+                    datos.append(pago_info)
             return Response(data=datos,status=HTTP_200_OK)
             
         except Exception as e:

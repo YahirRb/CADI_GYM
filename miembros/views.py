@@ -36,10 +36,6 @@ class RegistroMiembro(APIView):
             historialDeportivo = request.data.get('historial_deportivo') 
             datosInscripcion = request.data.get('datos_inscripcion') 
             
-            print(type(datosMiembro))
-            print(type(historialMedico))
-            print(type(historialDeportivo))
-            print(type(datosInscripcion))
             fecha_str=datosMiembro['fecha']
       
             fecha = datetime.strptime(fecha_str, '%Y-%m-%d')
@@ -47,7 +43,7 @@ class RegistroMiembro(APIView):
             curp= datosMiembro['curp']
             
             password= curp[:10]
-            print(password)
+            inscripciones=[]
             serializerMiembro = MiembroSerializer(data=datosMiembro)
             if serializerMiembro.is_valid():
                 
@@ -94,7 +90,11 @@ class RegistroMiembro(APIView):
                         if serializerInscripcion.is_valid():
                             print("si entra")
                             inscripcion = serializerInscripcion.save()  # Guardar inscripción
-
+                            inscripciones.append({
+                                "clase": inscripcion.clase,
+                                "idInscripcion": inscripcion.id,
+                                "vigencia":inscripcion_data['proximo_pago']
+                            })
                             # Preparar datos del pago realizado
                             datosPagoRealizado = {
                                 'fecha_pago_realizado': datosMiembro['fecha'],
@@ -145,7 +145,8 @@ class RegistroMiembro(APIView):
                     usuario = {
                         "correo": datosMiembro['correo'],
                         "password": password,
-                        "num_control": num_control
+                        "num_control": num_control,
+                        "inscripciones":inscripciones
                     }
                     return Response(data=usuario, status=HTTP_201_CREATED)
                 else:
@@ -622,7 +623,7 @@ class DatosUsuario(APIView):
         except Exception as e:
             print(e)
             return Response(data="Ocurrio un error", status=HTTP_400_BAD_REQUEST)
-    
+"""   
 class x(APIView):
     def post(self, request):
         try:
@@ -648,3 +649,4 @@ class x(APIView):
         except Exception as e:
             print(f"Error al subir la imagen: {e}")
             return Response({"error": "Ocurrió un error al subir la imagen"}, status=HTTP_500_INTERNAL_SERVER_ERROR)
+"""
