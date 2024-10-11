@@ -163,11 +163,17 @@ class RegistroMiembro(APIView):
                     return Response({"error": errors}, status=HTTP_400_BAD_REQUEST)
             else:
                 # Error en la validación del miembro
-                print(serializerMiembro.errors)
-                errores_formateados = {}
+                errores_formateados = []
+
+                # Recorrer los errores del serializador
                 for campo, errores in serializerMiembro.errors.items():
-                    errores_formateados[campo] = {str(error) for error in errores} 
-                return Response({"error": str(errores_formateados)}, status=HTTP_400_BAD_REQUEST)
+                    for error in errores:
+                        # Agregar cada campo y error al formato deseado
+                        errores_formateados.append(f"{campo} = {str(error)}")
+
+                # Unir todos los errores en un solo string separado por "|"
+                errores_str = " | ".join(errores_formateados)
+                return Response({"error": errores_str}, status=HTTP_400_BAD_REQUEST)
 
         except Exception as e:
             print(f"Error: {e}")  # Para propósitos de depuración
