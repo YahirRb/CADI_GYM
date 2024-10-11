@@ -187,7 +187,7 @@ class DatosMiembro(APIView):
                 "foto":foto_url,
                 "inscripciones": []
             }
-            for inscripcion in inscripciones:  
+            for inscripcion in inscripciones:   
                 pago=Pagos.objects.filter(inscripcion=inscripcion.id,estado='pendiente').latest('proximo_pago')
                 datos["inscripciones"].append({
                         "clase": inscripcion.clase,
@@ -537,32 +537,44 @@ class RegistroTemporal(APIView):
             return Response(data="Ocurrio un error",status=HTTP_400_BAD_REQUEST)
 
 class MiembrosActivos(APIView):
-    def get(self,request):
+    def get(self, request):
         try:
-            inscripciones=Inscripcion.objects.filter(acceso=True)
+            inscripciones = Inscripcion.objects.filter(acceso=True)
             
-            miembros=[] 
+            miembros = [] 
             for inscripcion in inscripciones:  
                 num_control = inscripcion.miembro.num_control  # Obtener el número de control del miembro
-                datos_miembro=inscripcion.miembro
-                if num_control not in [miembro['num_control'] for miembro in miembros]:
+                datos_miembro = inscripcion.miembro
+
+                # Buscar si el miembro ya está en la lista
+                miembro_existente = next((miembro for miembro in miembros if miembro['num_control'] == num_control), None)
+
+                if miembro_existente is None:
+                    # Si el miembro no existe, crear un nuevo registro
                     lista_inscripciones = [{
                         'clase': inscripcion.clase,
                         'id': inscripcion.id
                     }]
-                    historial_medico=HistorialMedico.objects.get(miembro=num_control) 
-                    datos={
-                        'num_control':num_control,
+                    historial_medico = HistorialMedico.objects.get(miembro=num_control) 
+                    datos = {
+                        'num_control': num_control,
                         'nombre': datos_miembro.nombre,
-                        'paterno':datos_miembro.paterno,
-                        'materno':datos_miembro.materno,
-                        'edad':datos_miembro.edad,
-                        'celular':datos_miembro.celular,
-                        'alergias':historial_medico.alergias,
-                        'inscripciones':lista_inscripciones
+                        'paterno': datos_miembro.paterno,
+                        'materno': datos_miembro.materno,
+                        'edad': datos_miembro.edad,
+                        'celular': datos_miembro.celular,
+                        'alergias': historial_medico.alergias,
+                        'inscripciones': lista_inscripciones
                     }
                     miembros.append(datos)  
-            return Response(data=miembros,status=HTTP_200_OK)
+                else:
+                    # Si el miembro ya existe, agregar la inscripción a la lista de inscripciones
+                    miembro_existente['inscripciones'].append({
+                        'clase': inscripcion.clase,
+                        'id': inscripcion.id
+                    })
+                    
+            return Response(data=miembros, status=HTTP_200_OK)
         except Exception as e:
             print(e)
             return Response(data="Ocurrio un error", status=HTTP_400_BAD_REQUEST)      
