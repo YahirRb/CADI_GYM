@@ -114,7 +114,7 @@ class RegistroMiembro(APIView):
                                 serializerPagoRealizado.save()
                             else:
                                 print(serializerPagoRealizado.errors)
-                                return Response(data="Los datos del pago realizado son incorrectos", status=HTTP_400_BAD_REQUEST)
+                                return Response(data=serializerPagoRealizado.errors, status=HTTP_400_BAD_REQUEST)
 
                             # Preparar datos del pago pendiente
                             datosPagoPendiente = {
@@ -135,10 +135,10 @@ class RegistroMiembro(APIView):
                                 
                             else:
                                 print(serializerPagoPendiente.errors)
-                                return Response(data="Los datos de pago son incorrectos", status=HTTP_400_BAD_REQUEST)
+                                return Response(data=serializerPagoPendiente.errors, status=HTTP_400_BAD_REQUEST)
                         else:
                             print(serializerInscripcion.errors)
-                            return Response(data="Los datos de inscripcion son incorrectos", status=HTTP_400_BAD_REQUEST)
+                            return Response(data=serializerInscripcion.errors, status=HTTP_400_BAD_REQUEST)
                     """
                     enviar_correo(
                         destinatario=datosMiembro['correo'],
@@ -159,7 +159,7 @@ class RegistroMiembro(APIView):
                         "historial_deportivo": serializerDeportivo.errors,
                     }
                     print(errors)
-                    return Response(data="El historial medico o deportivo son incorrectos", status=HTTP_400_BAD_REQUEST)
+                    return Response(data=errors, status=HTTP_400_BAD_REQUEST)
             else:
                 # Error en la validación del miembro
                 print(serializerMiembro.errors)
