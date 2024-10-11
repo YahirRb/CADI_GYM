@@ -68,7 +68,7 @@ class HistorialMedico(models.Model):
     desmayos_ejercicio = models.BooleanField(blank=True, null=True)  # Permitir nulos, si ha tenido desmayos durante el ejercicio
     traumatismo_oseo = models.JSONField(blank=True, null=True)  # Especificar fractura, esguince, dislocación y en qué parte
     golpe_cabeza = models.TextField(blank=True, null=True)  # Descripción de golpes en la cabeza, permitir nulos
-    alergias = models.TextField(blank=True, null=True, default="Ninguna")  # Lista de alergias, permitir nulos
+    alergias = models.TextField(default="Ninguna", blank=True, null=True)  # Lista de alergias, permitir nulos
     enfermedad_actual = models.TextField(blank=True, null=True)  # Descripción de enfermedad actual, permitir nulos
     observaciones = models.TextField(blank=True, null=True)
     
