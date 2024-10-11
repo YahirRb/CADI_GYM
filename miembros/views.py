@@ -114,7 +114,7 @@ class RegistroMiembro(APIView):
                                 serializerPagoRealizado.save()
                             else:
                                 print(serializerPagoRealizado.errors)
-                                return Response({"errors": serializerPagoRealizado.errors}, status=HTTP_400_BAD_REQUEST)
+                                return Response({"error": serializerPagoRealizado.errors}, status=HTTP_400_BAD_REQUEST)
 
                             # Preparar datos del pago pendiente
                             datosPagoPendiente = {
@@ -135,10 +135,10 @@ class RegistroMiembro(APIView):
                                 
                             else:
                                 print(serializerPagoPendiente.errors)
-                                return Response({"errors": serializerPagoPendiente.errors}, status=HTTP_400_BAD_REQUEST)
+                                return Response({"error": serializerPagoPendiente.errors}, status=HTTP_400_BAD_REQUEST)
                         else:
                             print(serializerInscripcion.errors)
-                            return Response({"errors": serializerInscripcion.errors}, status=HTTP_400_BAD_REQUEST)
+                            return Response({"error": serializerInscripcion.errors}, status=HTTP_400_BAD_REQUEST)
                     """
                     enviar_correo(
                         destinatario=datosMiembro['correo'],
@@ -159,11 +159,11 @@ class RegistroMiembro(APIView):
                         "historial_deportivo": serializerDeportivo.errors,
                     }
                     print(errors)
-                    return Response({"errors": errors}, status=HTTP_400_BAD_REQUEST)
+                    return Response({"error": errors}, status=HTTP_400_BAD_REQUEST)
             else:
                 # Error en la validación del miembro
                 print(serializerMiembro.errors)
-                return Response({"errors": serializerMiembro.errors}, status=HTTP_400_BAD_REQUEST)
+                return Response({"error": serializerMiembro.errors}, status=HTTP_400_BAD_REQUEST)
 
         except Exception as e:
             print(f"Error: {e}")  # Para propósitos de depuración
