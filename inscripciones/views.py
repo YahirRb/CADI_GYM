@@ -5,13 +5,13 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from miembros.models import Miembro
 from django.utils import timezone
-from  .models import Inscripcion,GimnasiaArtistica, GimnasioMixto,Asistencia
+from  .models import Inscripcion,GimnasiaArtistica, GimnasioMixto,Asistencia,RegistroPeticion
 from .serializers import ClasesSerializer
 from pagos.serializers import PagosSerializer
 from inscripciones.serializers import InscripcionSerializer,AsistenciaSerializer
 from pagos.models import Pagos
 from cadi_gym.utils import enviar_correo
-from empleados.notificaciones.notificaciones import  enviar_notificacion_a_alumno
+from empleados.notificaciones.notificaciones import  enviar_notificacion_a_alumno  
 
 class Clases(APIView):
     def get(self, resquest):
@@ -184,10 +184,17 @@ class RegistrarInscripcion(APIView):
 class NotificarPagos(APIView):
     def get(self, request):
         try:
-            # Obtener la fecha de hoy
+            
             fecha_hoy = datetime.now().date()
-
+            """
+            registro_existente = RegistroPeticion.objects.filter(fecha=fecha_hoy) 
+            if registro_existente:
+                return Response(data="Ya se realizó la operacion, vuelva mañana",status=HTTP_400_BAD_REQUEST)
             # Definir las fechas de vencimiento (hoy, +1 día, +3 días, +5 días)
+            
+            RegistroPeticion.objects.exclude(fecha=fecha_hoy).delete()
+            nuevo_registro = RegistroPeticion.objects.create(fecha=fecha_hoy)
+            """
             fechas_vencimiento = [
                 fecha_hoy,
                 fecha_hoy + timedelta(days=1),
@@ -220,14 +227,15 @@ class NotificarPagos(APIView):
                 mensajes.append(mensaje)
                 print(mensajes)
                 enviar_notificacion_a_alumno(miembro.num_control,mensaje)
+                """
                 if miembro.correo:
                     enviar_correo(
                         destinatario=miembro.correo,
                         asunto='Recordatorio de pago',
                         mensaje=mensaje)
-                        
-            
-            # Devolver los mensajes generados
+                """
+            enviar_notificacion_a_alumno("admin",mensajes)
+            enviar_notificacion_a_alumno("employee",mensajes)     
             return Response(mensajes,status=HTTP_200_OK)
         except Exception as e:
             print(e)

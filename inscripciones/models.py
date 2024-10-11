@@ -36,3 +36,6 @@ class Asistencia(models.Model):
 
     def __str__(self):
         return f"Asistencia - Fecha: {self.fecha} - Hora: {self.hora} - Inscripción: {self.inscripcion.miembro.nombre}"
+    
+class RegistroPeticion(models.Model):
+    fecha=models.DateField()

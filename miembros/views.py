@@ -163,7 +163,7 @@ class RegistroMiembro(APIView):
             else:
                 # Error en la validación del miembro
                 print(serializerMiembro.errors)
-                return Response(data="Los datos generales del usuario son incorrectos", status=HTTP_400_BAD_REQUEST)
+                return Response(data=serializerMiembro.errors, status=HTTP_400_BAD_REQUEST)
 
         except Exception as e:
             print(f"Error: {e}")  # Para propósitos de depuración
@@ -308,7 +308,7 @@ class RegistroVisitante(APIView):
             else:
                 print("error")
                 print(nuevo_visitante.errors)
-                return Response(data="Error al registrar visitante",status=HTTP_400_BAD_REQUEST)
+                return Response(data=nuevo_visitante.errors,status=HTTP_400_BAD_REQUEST)
         except Exception as e:
             print(e)
             return Response(data="Ocurrio un error",status=HTTP_400_BAD_REQUEST)

@@ -8,7 +8,7 @@ class MiembroSerializer(serializers.ModelSerializer):
         model = Miembro
         fields = '__all__'  # O especifica los campos que deseas incluir
     # Validación de longitud máxima y mensajes personalizados
-    """
+    
     paterno = serializers.CharField(
         max_length=100,
         error_messages={
@@ -21,11 +21,7 @@ class MiembroSerializer(serializers.ModelSerializer):
             'max_length': 'El apellido materno no puede tener más de 100 caracteres.',
         }
     )
-    direccion = serializers.CharField(
-        error_messages={
-            'blank': 'La dirección es obligatoria.',
-        }
-    )
+     
     dependencia = serializers.CharField(
         max_length=100,
         required=False,  # No es obligatorio, pero se puede validar si está presente
@@ -34,24 +30,16 @@ class MiembroSerializer(serializers.ModelSerializer):
         }
     )
     
-    fecha_nacimiento = serializers.CharField(
-        error_messages={
-            'blank': 'La fecha de nacimiento es obligatoria.',
-        }
-    )
+     
     
 
     
     # Validación de la edad
-    def validate_edad(self, value):
-        if value < 0 or value > 120:  # Rango razonable de edades
-            raise serializers.ValidationError("La edad debe ser un número positivo y razonable.")
-        return value
+    
 
-    # Validación del formato de CURP (18 caracteres alfanuméricos)
     def validate_curp(self, value):
         if not re.match(r'^[A-Z0-9]{18}$', value):
-            raise serializers.ValidationError("El CURP debe tener 18 caracteres alfanuméricos.")
+            raise serializers.ValidationError("El CURP debe tener 18 caracteres y deben ser letras mayusculas.")
         return value
 
     # Validación del formato del NSS (11 dígitos)
@@ -88,7 +76,7 @@ class MiembroSerializer(serializers.ModelSerializer):
         return value
 
 
-"""
+
 
 
 class HistorialMedicoSerializer(serializers.ModelSerializer):

@@ -7,7 +7,7 @@ from django.db import models
 class Miembro(models.Model):
     
     num_control = models.AutoField(primary_key=True) 
-    fecha = models.DateField()  # Fecha de registro automática # Número de control único
+    fecha = models.DateField()  
     nombre = models.CharField(max_length=100)
     paterno = models.CharField(max_length=100)
     materno = models.CharField(max_length=100)
@@ -88,7 +88,7 @@ class Visitantes(models.Model):
     nombre=models.CharField(max_length=100)
     paterno = models.CharField(max_length=100)
     materno = models.CharField(max_length=100)
-    correo = models.EmailField(unique=True,blank=True, null=True) 
+    correo = models.EmailField(blank=True, null=True) 
     celular = models.CharField(max_length=15,blank=True, null=True)
     clase = models.TextField(blank=True, null=True )
     costo = models.DecimalField(max_digits=10, decimal_places=2)
