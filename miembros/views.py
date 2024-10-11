@@ -135,6 +135,7 @@ class RegistroMiembro(APIView):
                                 
                             else:
                                 print(serializerPagoPendiente.errors)
+                                
                                 return Response({"error": serializerPagoPendiente.errors}, status=HTTP_400_BAD_REQUEST)
                         else:
                             print(serializerInscripcion.errors)
@@ -163,7 +164,10 @@ class RegistroMiembro(APIView):
             else:
                 # Error en la validación del miembro
                 print(serializerMiembro.errors)
-                return Response({"error": serializerMiembro.errors}, status=HTTP_400_BAD_REQUEST)
+                errores_formateados = {}
+                for campo, errores in serializerMiembro.errors.items():
+                    errores_formateados[campo] = {str(error) for error in errores} 
+                return Response({"error": str(errores_formateados)}, status=HTTP_400_BAD_REQUEST)
 
         except Exception as e:
             print(f"Error: {e}")  # Para propósitos de depuración
