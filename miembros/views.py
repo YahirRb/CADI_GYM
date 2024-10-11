@@ -113,8 +113,16 @@ class RegistroMiembro(APIView):
                                 # Guardar el pago realizado
                                 serializerPagoRealizado.save()
                             else:
-                                print(serializerPagoRealizado.errors)
-                                return Response({"error": serializerPagoRealizado.errors}, status=HTTP_400_BAD_REQUEST)
+                                errores_formateados = []
+                                # Recorrer los errores del serializador
+                                for campo, errores in serializerPagoRealizado.errors.items():
+                                    for error in errores:
+                                        # Agregar cada campo y error al formato deseado
+                                        errores_formateados.append(f"{campo} = {str(error)}")
+
+                                # Unir todos los errores en un solo string separado por "|"
+                                errores_str = " | ".join(errores_formateados)
+                                return Response({"error": errores_str}, status=HTTP_400_BAD_REQUEST)
 
                             # Preparar datos del pago pendiente
                             datosPagoPendiente = {
@@ -133,13 +141,29 @@ class RegistroMiembro(APIView):
                                 # Guardar el pago pendiente
                                 serializerPagoPendiente.save()
                                 
-                            else:
-                                print(serializerPagoPendiente.errors)
-                                
-                                return Response({"error": serializerPagoPendiente.errors}, status=HTTP_400_BAD_REQUEST)
+                            else: 
+                                errores_formateados = []
+                                # Recorrer los errores del serializador
+                                for campo, errores in serializerPagoPendiente.errors.items():
+                                    for error in errores:
+                                        # Agregar cada campo y error al formato deseado
+                                        errores_formateados.append(f"{campo} = {str(error)}")
+
+                                # Unir todos los errores en un solo string separado por "|"
+                                errores_str = " | ".join(errores_formateados)
+                                return Response({"error": errores_str}, status=HTTP_400_BAD_REQUEST)
                         else:
-                            print(serializerInscripcion.errors)
-                            return Response({"error": serializerInscripcion.errors}, status=HTTP_400_BAD_REQUEST)
+                            errores_formateados = []
+
+                            # Recorrer los errores del serializador
+                            for campo, errores in serializerInscripcion.errors.items():
+                                for error in errores:
+                                    # Agregar cada campo y error al formato deseado
+                                    errores_formateados.append(f"{campo} = {str(error)}")
+
+                            # Unir todos los errores en un solo string separado por "|"
+                            errores_str = " | ".join(errores_formateados)
+                            return Response({"error": errores_str}, status=HTTP_400_BAD_REQUEST)
                     """
                     enviar_correo(
                         destinatario=datosMiembro['correo'],
@@ -155,12 +179,23 @@ class RegistroMiembro(APIView):
                     return Response(data=usuario, status=HTTP_201_CREATED)
                 else:
                     # Recopilar errores de validación
-                    errors = {
-                        "historial_medico": serializerMedico.errors,
-                        "historial_deportivo": serializerDeportivo.errors,
-                    }
-                    print(errors)
-                    return Response({"error": errors}, status=HTTP_400_BAD_REQUEST)
+                    errores_formateados = []
+
+                    # Procesar los errores del serializerMedico
+                    for campo, errores in serializerMedico.errors.items():
+                        for error in errores:
+                            errores_formateados.append(f"{campo} = {str(error)}")
+
+                    # Procesar los errores del serializerDeportivo
+                    for campo, errores in serializerDeportivo.errors.items():
+                        for error in errores:
+                            errores_formateados.append(f"{campo} = {str(error)}")
+
+                    # Unir todos los errores en un solo string separado por "|"
+                    errores_str = " | ".join(errores_formateados)
+
+                    # Retornar la respuesta con los errores formateados
+                    return Response({"error": errores_str}, status=HTTP_400_BAD_REQUEST)
             else:
                 # Error en la validación del miembro
                 errores_formateados = []
