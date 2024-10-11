@@ -64,16 +64,6 @@ class MiembroSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("El número de teléfono del tutor debe tener entre 10 y 15 dígitos.")
         return value
 
-    # Validación del campo contacto_emergencia (JSON)
-    def validate_contacto_emergencia(self, value):
-        required_fields = ['nombre', 'relacion', 'telefono']
-        for field in required_fields:
-            if field not in value:
-                raise serializers.ValidationError(f"El campo '{field}' es obligatorio en contacto de emergencia.")
-        # Validación del teléfono dentro de contacto_emergencia
-        if not re.match(r'^\d{10,15}$', value['telefono']):
-            raise serializers.ValidationError("El teléfono del contacto de emergencia debe tener entre 10 y 15 dígitos.")
-        return value
 
 
 
