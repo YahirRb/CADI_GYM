@@ -22,13 +22,7 @@ class MiembroSerializer(serializers.ModelSerializer):
         }
     )
      
-    dependencia = serializers.CharField(
-        max_length=100,
-        required=False,  # No es obligatorio, pero se puede validar si está presente
-        error_messages={
-            'max_length': 'La dependencia no puede tener más de 100 caracteres.',
-        }
-    )
+    
     
      
     

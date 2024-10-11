@@ -19,7 +19,7 @@ class Miembro(models.Model):
     correo = models.EmailField(blank=True, null=True)  # Campo de correo único
     curp = models.CharField(max_length=18, unique=True)  # CURP única
     nss = models.CharField(max_length=11, unique=True,blank=True, null=True)  # Número de seguridad social único
-    dependencia = models.CharField(max_length=100, blank=True, null=True)
+    dependencia = models.CharField(max_length=100, blank=True, null=True,default="Ninguna")
     telefono_fijo = models.CharField(max_length=15, blank=True, null=True)
     celular = models.CharField(max_length=15,blank=True, null=True)
     estado_civil=models.CharField(max_length=15, blank=True, null=True)
