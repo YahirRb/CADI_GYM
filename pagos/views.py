@@ -70,7 +70,8 @@ class RegistrarPago(APIView):
             fecha_pago= request.data.get('fecha_pago')
             monto = request.data.get('monto')
             id_pago = request.data.get('id_pago')
-            pago = Pagos.objects.get(id=id_pago)
+            pago = Pagos.objects.get(id=id_pago,estado='pendiente')
+            
             pago.fecha_pago_realizado=fecha_pago
             pago.estado='pagado'
             miembro= pago.miembro
@@ -111,7 +112,7 @@ class RegistrarPago(APIView):
             return Response(data="Pago registrado",status=HTTP_200_OK)
         except Pagos.DoesNotExist as e:
             print(e)
-            return Response(data="Ocurrio un error",status=HTTP_404_NOT_FOUND)
+            return Response(data="El pago ya ha sido registrado anteriormente",status=HTTP_404_NOT_FOUND)
         except Inscripcion.DoesNotExist as e:
             print(e)
             return Response(data="Ocurrio un error",status=HTTP_404_NOT_FOUND)
