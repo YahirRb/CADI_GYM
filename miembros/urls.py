@@ -12,5 +12,6 @@ urlpatterns = [
     path('activos/',MiembrosActivos.as_view(), name='activos'),
     path('enlace/',EnlaceTemporal.as_view(), name='enlace'),
     path('visitante_existente/', VisitantesRegistrados.as_view(), name='visitante_existente'),
-    path('datos_usuario/',DatosUsuario.as_view(), name='datos_usuario')
+    path('datos_usuario/',DatosUsuario.as_view(), name='datos_usuario'), 
+    
 ]

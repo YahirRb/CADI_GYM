@@ -25,7 +25,30 @@ env = environ.Env()
 environ.Env.read_env()
 
 User = get_user_model()
-
+def calcular_fecha(fecha_str,modalidad):
+        # Obtener la fecha y modalidad del request
+        
+        # Convertir la fecha de string a objeto datetime
+        fecha = datetime.strptime(fecha_str, '%Y-%m-%d')
+        fecha_actual = datetime.now()
+        print(modalidad)
+        # Lógica para sumar tiempo dependiendo de la modalidad
+        while fecha < fecha_actual:
+            if modalidad == 'Quincena':
+                fecha += relativedelta(days=15)
+            elif modalidad == 'Semana':
+                fecha += timedelta(weeks=1)
+            elif modalidad == 'Mes' or modalidad == 'Mes (de 5 a 6 años)' or modalidad == 'Mes (7 años en adelante)':
+                fecha += relativedelta(months=1)
+            elif modalidad == 'Trimestre':
+                fecha += relativedelta(months=3)
+            elif modalidad == '6 meses':
+                fecha += relativedelta(months=6)
+            else:
+                return "Modalidad no valida"
+        return fecha.date()
+        # Devolver la nueva fecha calculada
+    
 class RegistroMiembro(APIView):
     def post(self, request):
         try:
@@ -35,10 +58,12 @@ class RegistroMiembro(APIView):
             historialMedico = request.data.get('historial_medico')
             historialDeportivo = request.data.get('historial_deportivo') 
             datosInscripcion = request.data.get('datos_inscripcion') 
-            
+            datosMiembro['nombre']=datosMiembro['nombre'].upper()
+            datosMiembro['paterno']=datosMiembro['paterno'].upper()
+            datosMiembro['materno']=datosMiembro['materno'].upper() 
             fecha_str=datosMiembro['fecha']
-      
             fecha = datetime.strptime(fecha_str, '%Y-%m-%d')
+            fecha_actual = datetime.now()
             # Serializar el miembro
             curp= datosMiembro['curp']
             
@@ -69,8 +94,10 @@ class RegistroMiembro(APIView):
                         # Asignar ID de miembro a cada inscripción
                         inscripcion_data['miembro'] = num_control
                         modalidad=inscripcion_data['modalidad']
-                        print('segundo')
                         print(modalidad)
+                        
+                        print('segundo')
+                        
                         
                         inscripcion_data['fecha'] = datosMiembro['fecha']
                         if modalidad == 'Semana':
@@ -90,11 +117,7 @@ class RegistroMiembro(APIView):
                         if serializerInscripcion.is_valid():
                             print("si entra")
                             inscripcion = serializerInscripcion.save()  # Guardar inscripción
-                            inscripciones.append({
-                                "clase": inscripcion.clase,
-                                "idInscripcion": inscripcion.id,
-                                "vigencia":inscripcion_data['proximo_pago']
-                            })
+                            
                             # Preparar datos del pago realizado
                             datosPagoRealizado = {
                                 'fecha_pago_realizado': datosMiembro['fecha'],
@@ -123,8 +146,18 @@ class RegistroMiembro(APIView):
                                 # Unir todos los errores en un solo string separado por "|"
                                 errores_str = " | ".join(errores_formateados)
                                 return Response({"error": errores_str}, status=HTTP_400_BAD_REQUEST)
-
+                            fecha_limite = fecha_actual - relativedelta(months=1)
+                            print(fecha_limite)
+                            if fecha.year < fecha_actual.year or (fecha.year == fecha_actual.year and fecha.month < fecha_limite.month):
+                                inscripcion_data['proximo_pago']=calcular_fecha(fecha_str,modalidad)
+                            
+                                print("jala") 
                             # Preparar datos del pago pendiente
+                            inscripciones.append({
+                                "clase": inscripcion.clase,
+                                "idInscripcion": inscripcion.id,
+                                "vigencia":inscripcion_data['proximo_pago']
+                            })
                             datosPagoPendiente = {
                                 'fecha_pago_realizado': None,  # No se ha realizado el pago
                                 'estado': 'pendiente',
